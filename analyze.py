@@ -47,14 +47,14 @@ KO = {842: "미국", 156: "중국", 124: "캐나다", 392: "일본", 36: "호주
 # 롯데웰푸드 IR 2025년 4분기(2026-02-06) 10·29쪽, 2026년 2분기(2026-08-07) 10쪽
 PLANT = {398: "카자흐스탄 공장 3", 586: "파키스탄 공장 7", 56: "벨기에 공장 1", 699: "인도 공장 6(건과3·빙과3)",
          643: "러시아 공장 1", 104: "미얀마 공장 3"}
-SALES_SUB = {702: "싱가포르 판매법인"}
+SALES_SUB = {702: "싱가포르 판매법인", 826: "길리안 판매법인(영국) · 빼빼로 입점국·주요 수출국 목록엔 없음"}  # IR 2025 4Q 25쪽
 KEY_EXPORT = {842: "미국", 764: "태국", 704: "베트남", 608: "필리핀", 36: "호주", 124: "캐나다"}
 # IR 2026년 2분기 10쪽 「유럽 주요 체인 빼빼로 입점 → 독일 REWE, 네덜란드 Albert Heijn」
 IR_ENTRY = {276: "IR 입점 나라(독일 REWE)", 528: "IR 입점 나라(네덜란드 Albert Heijn)"}
 
 
 def tag_of(p):
-    return PLANT.get(p) or IR_ENTRY.get(p) or SALES_SUB.get(p) or ("IR 주요 수출국" if p in KEY_EXPORT else "IR에 나라 이름 없음")
+    return PLANT.get(p) or IR_ENTRY.get(p) or SALES_SUB.get(p) or ("IR 주요 수출국" if p in KEY_EXPORT else "IR 주요 수출국·입점국 목록에 없음")
 
 
 def name(c):
