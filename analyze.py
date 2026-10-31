@@ -262,12 +262,55 @@ for p in top3 + [276]:
                          "values": {"2021": KFOOD[p][0], "2025": KFOOD[p][1]}, "unit": "USD", "cagr": (KFOOD[p][1] / KFOOD[p][0]) ** .25 - 1,
                          "source": f"UN Comtrade, 보고국 한국(410), 상대국 {name(p)}({p}), HS 16·17·18·19·20·21류 합계, 수출, 2021·2025년"})
 
+# 올라오는 나라(지금 TOP3 밖, 작지만 빠른 곳) — 규칙은 전부 코드로 고정
+RISING_RULE = {"한국수출_2025_최소USD": 1e6, "한국수출_연증가율_최소": 0.20, "그나라수입_연증가율_최소": 0.10,
+               "한국점유율_최대": 0.03, "제외": "현지 공장 국가·지금 TOP3"}
+rising = []
+for r in ROWS:
+    p, c = r["code"], r["cmd"]
+    if p in top3 or p in PLANT or r["kor_2025_usd"] < RISING_RULE["한국수출_2025_최소USD"]:
+        continue
+    if r["kgrow"] < RISING_RULE["한국수출_연증가율_최소"] or r["growth"] < RISING_RULE["그나라수입_연증가율_최소"] or r["kor_share"] >= RISING_RULE["한국점유율_최대"]:
+        continue
+    kx22 = DATA[c]["kx"][2022].get(p); kx24 = DATA[c]["kx"][2024].get(p)
+    rising.append({"country": name(p), "code": p, "cmd": CMDS[c], "kor_2021_usd": r["kor_base_usd"], "kor_2025_usd": r["kor_2025_usd"],
+                   "kgrow_2021base": round(r["kgrow"], 4), "kgrow_2022base": round((r["kor_2025_usd"] / kx22) ** (1 / 3) - 1, 4) if kx22 else None,
+                   "kor_2024to2025": round(r["kor_2025_usd"] / kx24 - 1, 4) if kx24 else None,
+                   "import_growth": round(r["growth"], 4), "import_wgrowth": round(r["wgrowth"], 4) if r["wgrowth"] is not None else None,
+                   "kor_share_2025": round(r["kor_share"], 5), "import_last_year": r["import_last_year"],
+                   "tag": tag_of(p), "주의": ("2025년 한 해 급증(2024→2025 +%.0f%%)" % ((r["kor_2025_usd"] / kx24 - 1) * 100)) if kx24 and r["kor_2025_usd"] / kx24 - 1 > 1 else ""})
+rising.sort(key=lambda x: -x["kgrow_2021base"])
+
+# 자료 빈 곳(에이전트가 스스로 내는 역제안) — TOP3·올라오는 나라에 대해 코드가 자동으로 찾음
+NEXT_SOURCE = {"수입_최근연도_2025_아님": "그 나라 관세청·통계청 월별 통계(영국은 HMRC UK Trade Info), 또는 관세청 수출입무역통계의 한국→그 나라 2026년 월별치",
+               "수입_무게_없음": "그 나라 통계청 무게·수량 통계, 없으면 한국 관세청 수출 무게(410→그 나라)로 대신",
+               "재수출_큰_나라": "그 나라 소비 통계(aT KATI 보고서가 인용하는 유로모니터 등)",
+               "트렌드_보고서_없음": "aT KATI 국가·품목 보고서, KOTRA 해외시장뉴스",
+               "제품_신고코드_미확인": "롯데웰푸드 제품별 신고 품목코드·수출 실적(사내 자료)"}
+gaps = []
+for p in top3 + [x["code"] for x in rising]:
+    for c in sorted(by.get(p, {}), key=lambda c: -by[p][c][0]):
+        r = next((r for r in ROWS if r["code"] == p and r["cmd"] == c), None)
+        if not r: continue
+        if r["import_last_year"] < 2025:
+            gaps.append({"country": name(p), "cmd": CMDS[c], "빈 곳": f"수입 통계가 {r['import_last_year']}년까지", "다음 출처": NEXT_SOURCE["수입_최근연도_2025_아님"]})
+        if r["wgrowth"] is None:
+            gaps.append({"country": name(p), "cmd": CMDS[c], "빈 곳": "수입 무게 없음(가격 효과 못 가름)", "다음 출처": NEXT_SOURCE["수입_무게_없음"]})
+        elif r["w_last_year"] < 2025:
+            gaps.append({"country": name(p), "cmd": CMDS[c], "빈 곳": f"수입 무게가 {r['w_last_year']}년까지", "다음 출처": NEXT_SOURCE["수입_무게_없음"]})
+gaps.append({"country": "전체", "cmd": "빼빼로", "빈 곳": "실제 신고 품목코드 미확인(HS 1905로 가정)", "다음 출처": NEXT_SOURCE["제품_신고코드_미확인"]})
+gaps.append({"country": "전체", "cmd": "소비 트렌드", "빈 곳": "보고서 문장은 영국·네덜란드·미국 3개국만 확보", "다음 출처": NEXT_SOURCE["트렌드_보고서_없음"]})
+
 # 재수출 확인 표(비스킷·아이스크림): 수입 - 수출
 hub = []
 for (p, c), x in sorted(HUB.items()):
     r = next((r for r in ROWS if r["code"] == p and r["cmd"] == c), None)
     m = r["import_last_usd"] if r and r["import_last_year"] == 2025 else DATA[c]["wm"][2025].get(p)
     hub.append({"country": name(p), "cmd": c, "import_2025": m, "export_2025": x, "net_import_2025": (m - x) if m else None})
+
+for h in hub:
+    if h["net_import_2025"] is not None and h["import_2025"] and h["export_2025"] / h["import_2025"] > 0.5:
+        gaps.append({"country": h["country"], "cmd": CMDS[h["cmd"]], "빈 곳": "수출(재수출 포함)이 수입의 절반 넘음(수입이 소비인지 모름)", "다음 출처": NEXT_SOURCE["재수출_큰_나라"]})
 
 result = {
     "기준": "UN Comtrade 공개 API(preview), 내려받은 날 " + json.load(open(RAW / "kor_export_1905_2025.json"))["_fetched"],
@@ -282,6 +325,9 @@ result = {
     "민감도_TOP3": sens,
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
+    "올라오는_나라_규칙": RISING_RULE,
+    "올라오는_나라": rising,
+    "자료_빈_곳": gaps,
     "재수출_확인": hub,
     "무게_자료_없는_행": [f"{r['country']} HS{r['cmd']}" for r in ROWS if r["wgrowth"] is None],
     "무게_기준_TOP3후보": {f"{r['country']} HS{r['cmd']}": {"금액_연": round(r["growth"] * 100, 1), "무게_연": round(r["wgrowth"] * 100, 1) if r["wgrowth"] is not None else None, "무게_연도": f"{r['w_base_year']}→{r['w_last_year']}"} for r in ROWS if r["code"] in top3},
