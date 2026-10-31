@@ -200,23 +200,27 @@ _, ovw = score(W0, ROWS_WIDE)
 WIDE_N = len(ovw)
 sens[f"범위 넓힘(한국 수출 30만 달러·수입 1,000만 달러 이상, {WIDE_N}개국)"] = [name(p) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:3]]
 WIDE_TOP10 = [(name(p), round(ovw[p], 1)) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:10]]
-# 10번째 검산: 비스킷을 4단위(HS 1905, 빵·케이크 포함) 대신 6단위로. 한국의 1905 수출은 94%가 1905.90(기타: 빵·케이크·쌀과자·스낵 포함)이고
-# 1905.31(달콤한 비스킷)은 5%뿐이라, 한국 수출이 잡히는 190590으로 검산한다. 190531·190532 는 구성 확인용으로 함께 받아 둠.
-def _load6(c):
-    return {"kx": {y: load("kor_export", c, y) for y in range(2021, 2026)},
-            "wm": {y: load("world_import", c, y) for y in range(2021, 2026)},
-            "ww": {y: load("world_import", c, y, "netWgt") for y in range(2021, 2026)}}
-DATA6 = dict(DATA); DATA6["1905"] = _load6("190590")
+# 10번째 검산: 그 나라 수입을 빵·케이크가 섞인 HS 1905 대신 「빵 뺀」 6단위(190531 달콤한 비스킷 + 190532 와플·웨이퍼)로.
+# 한국 수출은 1905 그대로 둔다 — 한국의 1905 수출 94%가 1905.90(기타)로 신고돼 6단위로 쪼개면 한국 쪽 숫자가 사라지기 때문.
+def _ld(c, f="primaryValue"):
+    return {y: load("world_import", c, y, f) for y in range(2021, 2026)}
+def _add(x, y):
+    return {yr: {k: (x[yr].get(k, 0) or 0) + (y[yr].get(k, 0) or 0) for k in set(x[yr]) | set(y[yr])} for yr in x}
+DATA6 = dict(DATA)
+DATA6["1905"] = {"kx": DATA["1905"]["kx"], "wm": _add(_ld("190531"), _ld("190532")), "ww": _add(_ld("190531", "netWgt"), _ld("190532", "netWgt"))}
 ROWS6 = build_rows(data=DATA6)
 by6, ov6 = score(W0, ROWS6)
-sens["비스킷을 6단위(HS 190590 — 한국 과자 수출의 94%가 신고되는 칸)로"] = [name(p) for p in [p for p in sorted(ov6, key=lambda p: -ov6[p]) if p not in PLANT][:3]]
+sens["그 나라 수입을 빵 뺀 비스킷·웨이퍼(HS 190531+190532)로"] = [name(p) for p in [p for p in sorted(ov6, key=lambda p: -ov6[p]) if p not in PLANT][:3]]
 BISCUIT6_TOP5 = [(name(p), round(by6[p]["1905"][0], 1)) for p in sorted([p for p in by6 if "1905" in by6[p] and p not in PLANT], key=lambda p: -by6[p]["1905"][0])[:5]]
 BISCUIT6_N = len([p for p in by6 if "1905" in by6[p] and p not in PLANT])
+_uk6 = next((r for r in ROWS6 if r["code"] == 826 and r["cmd"] == "1905"), None)
+BISCUIT6_UK = {"수입_2021": _uk6["import_base_usd"], "수입_2025": _uk6["import_last_usd"], "연증가": round(_uk6["growth"], 4), "한국점유율": round(_uk6["kor_share"], 5)} if _uk6 else None
 _k = {c: sum(v for k, v in load("kor_export", c, 2025).items() if k != 0) for c in ("1905", "190531", "190532", "190590")}
 KOR_1905_SPLIT = {"1905 전체": _k["1905"], "190531 달콤한 비스킷": _k["190531"], "190532 와플·웨이퍼": _k["190532"], "190590 기타(빵·케이크·쌀과자·스낵 포함)": _k["190590"],
-                  "190590 비중": round(_k["190590"] / _k["1905"], 3)}
-_uk = {c: (load("kor_export", c, 2025).get(826) or 0) for c in ("1905", "190531", "190532", "190590")}
-KOR_1905_SPLIT["영국행"] = _uk
+                  "190590 비중": round(_k["190590"] / _k["1905"], 3), "영국행": {c: (load("kor_export", c, 2025).get(826) or 0) for c in ("1905", "190531", "190532", "190590")}}
+_ukimp = {c: (load("world_import", c, 2025).get(826) or 0) for c in ("1905", "190531", "190532", "190590")}
+KOR_1905_SPLIT["영국_수입_2025"] = _ukimp
+RAW_FILES = len([f for f in RAW.glob("*.json") if not f.name.startswith(("partners", "reporters"))])
 count = {}
 for v in sens.values():
     for n in v:
@@ -303,7 +307,8 @@ for r in ROWS:
                    "import_growth": round(r["growth"], 4), "import_wgrowth": round(r["wgrowth"], 4) if r["wgrowth"] is not None else None,
                    "kor_share_2025": round(r["kor_share"], 5), "import_last_year": r["import_last_year"],
                    "tag": tag_of(p), "주의": ("2025년 한 해 급증(2024→2025 +%.0f%%)" % ((r["kor_2025_usd"] / kx24 - 1) * 100)) if kx24 and r["kor_2025_usd"] / kx24 - 1 > 1 else ""})
-rising.sort(key=lambda x: -x["kgrow_2021base"])
+rising.sort(key=lambda x: (0 if (x.get("한국가공식품_연증가율") or 0) >= 0.10 else 1, -x["그나라_수입시장_USD"]))
+RISING_RULE["순서"] = "K-푸드 전반(그 나라행 한국 가공식품 수출)도 연 10% 이상 느는 나라를 먼저, 시장 큰 순. 그다음 한 품목만 뜨는 나라"
 
 # 자료 빈 곳(에이전트가 스스로 내는 역제안) — TOP3·올라오는 나라에 대해 코드가 자동으로 찾음
 NEXT_SOURCE = {"수입_최근연도_2025_아님": "그 나라 관세청·통계청 월별 통계(영국은 HMRC UK Trade Info), 또는 관세청 수출입무역통계의 한국→그 나라 2026년 월별치",
@@ -325,7 +330,7 @@ for p in top3 + [x["code"] for x in rising]:
 gaps.append({"country": "전체", "cmd": "빼빼로", "빈 곳": "실제 신고 품목코드 미확인(HS 1905로 가정)", "다음 출처": NEXT_SOURCE["제품_신고코드_미확인"]})
 _tw = {c: DATA[c]["kx"][2025].get(490) for c in CMDS}
 gaps.append({"country": "대만", "cmd": "전 품목", "빈 곳": "Comtrade에 대만(코드 490) 수입 통계가 없어 비교에서 빠짐 — 한국 비스킷 수출 " + f"{(_tw.get('1905') or 0)/1e6:.1f}백만 달러(상대국 4위)", "다음 출처": "대만 재정부 관무서(關務署) 수출입 통계"})
-gaps.append({"country": "전체", "cmd": "비스킷·과자류", "빈 곳": "HS 1905에는 빵·케이크도 들어 있음. 한국 과자 수출의 94%가 1905.90(기타)으로 신고돼 6단위로도 과자만 못 가름", "다음 출처": "롯데 제품별 신고 코드(10단위)와 그 나라 세관 통계"})
+gaps.append({"country": "전체", "cmd": "비스킷·과자류", "빈 곳": "HS 1905엔 빵·케이크 포함. 빵 뺀 6단위(190531+32)로 다시 계산해도 영국 1위·TOP3 같음. 한국 과자 수출은 94%가 1905.90(기타)로 신고돼 제품별 코드는 모름", "다음 출처": "롯데 제품별 신고 코드(10단위)"})
 gaps.append({"country": "전체", "cmd": "소비 트렌드", "빈 곳": "보고서 문장은 영국·네덜란드·미국 3개국만 확보", "다음 출처": NEXT_SOURCE["트렌드_보고서_없음"]})
 
 # 재수출 확인 표(비스킷·아이스크림): 수입 - 수출
@@ -355,7 +360,7 @@ result = {
     "나라별_지표": {name(p): {"code": p, "tag": tag_of(p), "종합점수": round(overall[p], 1) if p in overall else None,
                            "종합순위": ([q for q in cand].index(p) + 1) if p in cand else None,
                            "품목": {CMDS[c]: {"품목순위": [q for q in sorted([q for q in by if c in by[q] and q not in PLANT], key=lambda q: -by[q][c][0])].index(p) + 1 if p not in PLANT else None,
-                                           "품목점수": round(by[p][c][0], 1), "지표백분위": {k: round(v) for k, v in by[p][c][1].items()},
+                                           "품목점수": round(by[p][c][0], 1), "지표백분위": {k: round(v, 2) for k, v in by[p][c][1].items()},
                                            "수입_최근USD": r["import_last_usd"], "수입_연증가": round(r["growth"], 4), "수입무게_연증가": round(r["wgrowth"], 4) if r["wgrowth"] is not None else None,
                                            "한국수출_2021USD": r["kor_base_usd"], "한국수출_2025USD": r["kor_2025_usd"], "한국수출_연증가": round(r["kgrow"], 4), "한국점유율": round(r["kor_share"], 5),
                                            "한국가공식품_연증가": round(r["kfood"], 4) if r.get("kfood") is not None else None, "수입_최근연도": r["import_last_year"]}
@@ -365,9 +370,11 @@ result = {
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
     "범위_넓힘_상위10": WIDE_TOP10,
-    "비스킷_6단위_품목TOP5": BISCUIT6_TOP5,
-    "비스킷_6단위_나라수": BISCUIT6_N,
+    "비스킷_빵뺀_품목TOP5": BISCUIT6_TOP5,
+    "비스킷_빵뺀_나라수": BISCUIT6_N,
+    "비스킷_빵뺀_영국": BISCUIT6_UK,
     "한국_1905_6단위_구성_2025": KOR_1905_SPLIT,
+    "원본_파일수": RAW_FILES,
     "범위_넓힘_나라수": WIDE_N,
     "올라오는_나라_규칙": RISING_RULE,
     "올라오는_나라": rising,

@@ -41,6 +41,7 @@ PLAN_SCHEMA = {
         "focus_countries": {"type": ["array", "null"], "items": {"type": "string"}, "description": "질문이 가리키는 나라 이름(한국어). 없으면 null"},
         "exclude_regions": {"type": ["array", "null"], "items": {"type": "string"}, "description": "빼라고 한 지역(유럽|아시아|북미|중남미|중동|오세아니아). 없으면 null"},
         "exclude_countries": {"type": ["array", "null"], "items": {"type": "string"}, "description": "빼라고 한 나라 이름. 없으면 null"},
+        "limits": {"type": ["string", "null"], "description": "이 도구들로는 답하지 못하는 부분이 있으면 한 줄(예: 「빵을 뺀 수치는 비스킷 검산에서만 봄」). 없으면 null"},
         "steps": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {"tool": {"type": "string", "enum": list(TOOLS)},
@@ -55,13 +56,13 @@ PLAN_SCHEMA = {
                            "why": {"type": "string"}},
             "required": ["tool", "args", "why"]}},
     },
-    "required": ["question_understood", "intent", "focus_countries", "exclude_regions", "exclude_countries", "steps"],
+    "required": ["question_understood", "intent", "focus_countries", "exclude_regions", "exclude_countries", "limits", "steps"],
 }
 
 SYSTEM = ("너는 K-푸드 수출 유망국가 에이전트의 계획 단계다. 담당자의 질문을 읽고, 아래 도구를 어떤 순서로 어떤 인자로 부를지 JSON 으로만 답한다. "
           "먼저 intent(질문 종류)와 focus_countries(질문이 가리키는 나라), 그리고 「~는 빼고」가 있으면 exclude_regions·exclude_countries 를 정한다(빼는 지역은 fetch_import 의 region 에 넣지 않는다). 가중치는 질문이 바꾸라고 할 때만 score 의 weights 에 size(시장 규모)·growth(수입 성장)·kgrow(한국 수출 성장)·kfood(K-푸드 전반) 비중을 합이 1이 되게 넣고, 그 밖엔 반드시 null 로 둔다(기본 가중치 각 25%). 규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). 특정 나라를 묻는 질문(why_country·item_for_country)은 score → explain → verify → gaps 를 포함한다. explain 뒤에는 반드시 verify 가 온다. "
           "질문에 제품 이름이 있으면 품목코드로 바꾼다(빼빼로·칸쵸=1905, 가나=1806, 캔디=1704, 월드콘=2105). 품목을 안 정한 질문(K-푸드 전체·유망국가 전체)이면 hs 를 비워 둔다(= 전체 품목). "
-          "질문에 지역이 있으면 fetch_import 의 region 에 넣는다(동남아·동북아·중앙아시아·인도 등은 아시아, 남미·라틴아메리카·멕시코는 중남미, EU·서유럽·동유럽·영국은 유럽, 미국·캐나다는 북미, 걸프·중동은 중동, 호주·뉴질랜드는 오세아니아 — 이 여섯 이름이나 전체만 쓴다).  자료가 없는 나라가 있을 수 있으니 마지막엔 gaps 를 부른다.\n도구 목록:\n"
+          "질문에 지역이 없으면 region 은 null(전체)로 두고 지역을 지어내지 않는다. 뺄 지역은 exclude_regions 에만 쓰고 나머지 지역으로 쪼개지 않는다. 질문에 지역이 있으면 fetch_import 의 region 에 넣는다(동남아·동북아·중앙아시아·인도 등은 아시아, 남미·라틴아메리카·멕시코는 중남미, EU·서유럽·동유럽·영국은 유럽, 미국·캐나다는 북미, 걸프·중동은 중동, 호주·뉴질랜드는 오세아니아 — 이 여섯 이름이나 전체만 쓴다).  자료가 없는 나라가 있을 수 있으니 마지막엔 gaps 를 부른다. 도구가 못 하는 것(예: 품목 6단위 분리, 소비 트렌드 자동 수집, 롯데 제품별 실적)은 limits 에 적는다.\n도구 목록:\n"
           + "\n".join(f"- {k}: {v['desc']} / 인자 {json.dumps(v['args'], ensure_ascii=False)}" for k, v in TOOLS.items()))
 
 
@@ -124,7 +125,7 @@ def run_plan(plan, dry=False):
             if a.get("weights"):
                 out_w = {k: v for k, v in a["weights"].items() if v}
                 top = f"(가중치 {out_w} 적용 — 실제 순위는 화면 답 참조)"
-            out = {"종합_TOP3": top, "품목별": per, "민감도_등장횟수": R["민감도_TOP3_등장횟수"]}
+            out = "점수·순위 계산(지역·제외·가중치 반영한 실제 순위는 화면 답에 표시)"
         elif t == "rising":
             out = [f"{x['country']} {x['cmd'].split('(')[0]} 연 {x['kgrow_2021base']*100:.0f}%" for x in R["올라오는_나라"]]
         elif t == "gaps":
@@ -134,7 +135,8 @@ def run_plan(plan, dry=False):
             out = f"설명 문장 {len(sents)}개(받아 둔 것을 씀{' · dry' if dry else ''})"
         elif t == "verify":
             v = json.load(open(OUT / "검증_v3_요약.json", encoding="utf-8")) if (OUT / "검증_v3_요약.json").exists() else {}
-            out = {"검증기": "v3", "요약": {k: v[k] for k in list(v)[:4]} if isinstance(v, dict) else v}
+            v3 = (v.get("v3") or {}) if isinstance(v, dict) else {}
+            out = {"검증기": "v3", "저장문장72": v3.get("가_저장문장72"), "공격17": v3.get("나_공격17"), "어려운세트50": v3.get("다_어려운세트50")}
         else:
             out = "모르는 도구"
         log.append({"순서": i, "도구": t, "인자": a, "이유": s.get("why"), "결과": out, "초": round(time.time() - t0, 3)})
@@ -169,7 +171,7 @@ def hand_plan(question):
     hs = next((v for k, v in PRODUCT_HS.items() if k in question), "1905")
     region = next((r for r in REGION if r in question), "전체")
     A = lambda **kw: {"hs": None, "region": None, "countries": None, "weights": None, "top_n": None, **kw}
-    return {"question_understood": f"HS {hs}, {region} — 다음 나라", "intent": "top3", "focus_countries": None, "exclude_regions": None, "exclude_countries": None, "steps": [
+    return {"question_understood": f"HS {hs}, {region} — 다음 나라", "intent": "top3", "focus_countries": None, "exclude_regions": None, "exclude_countries": None, "limits": None, "steps": [
         {"tool": "fetch_import", "args": A(hs=hs, region=region), "why": "손 계획"},
         {"tool": "fetch_kor_export", "args": A(hs=hs), "why": "손 계획"},
         {"tool": "score", "args": A(), "why": "손 계획"},

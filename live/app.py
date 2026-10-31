@@ -31,6 +31,25 @@ CMD_KEY = {"1905": "비스킷·과자류(빼빼로·칸쵸 등)", "1806": "초�
 
 
 PLANT = {"카자흐스탄", "파키스탄", "벨기에", "인도", "러시아", "미얀마"}  # 롯데웰푸드 현지 공장 나라(IR) — 추천 대상에서 제외
+ALIAS = {"사우디": "사우디아라비아", "UAE": "아랍에미리트", "아랍에미리트연합": "아랍에미리트", "두바이": "아랍에미리트", "UK": "영국", "잉글랜드": "영국", "USA": "미국", "US": "미국", "미합중국": "미국",
+         "홀란드": "네덜란드", "화란": "네덜란드", "타이완": "대만", "오스트레일리아": "호주", "멕시코": "멕시코", "타이": "태국", "베트남": "베트남", "인니": "인도네시아", "필리핀": "필리핀",
+         "일본": "일본", "중국": "중국", "홍콩": "홍콩", "싱가포르": "싱가포르", "몽골": "몽골", "독일": "독일", "프랑스": "프랑스", "캐나다": "캐나다", "브라질": "브라질", "아르헨티나": "아르헨티나", "말레이시아": "말레이시아"}
+
+
+def norm_country(c):
+    """줄인 이름·별칭을 자료의 이름으로. 모르면 원문 그대로."""
+    c = (c or "").strip()
+    if not c:
+        return c
+    if c in ALIAS:
+        return ALIAS[c]
+    M = R["나라별_지표"]
+    if c in M or c in PLANT:
+        return c
+    for k in M:
+        if k.startswith(c) or c.startswith(k):
+            return k
+    return c
 ITEM_W = R.get("품목_비중_한국수출2025USD", {})
 METRIC_NAMES = {"size": "시장 규모", "growth": "수입 성장", "kgrow": "한국 수출 성장", "kfood": "K-푸드 전반"}
 
@@ -93,6 +112,7 @@ def rankings(weights=None, codes=None, excl=None):
 def country_answer(focus, hs, intent, per, overall):
     """특정 나라 질문: 그 나라의 순위·점수·지표를 품목 1위와 나란히(자기가 1위면 2위와)."""
     M = R["나라별_지표"]
+    GAPS = {g["country"]: g for g in R.get("자료_빈_곳", [])}
     out = []
     for c in focus:
         if c in PLANT:
@@ -101,24 +121,29 @@ def country_answer(focus, hs, intent, per, overall):
             continue
         m = M.get(c)
         if not m:
-            out.append({"나라": c, "표시": "자료에 없는 나라", "종합순위": None, "종합점수": None, "품목별": [], "빈_곳": [],
-                        "종합순위_없는_이유": "비교 조건(한국 수출 100만 달러·그 나라 수입 2,000만 달러)을 넘는 품목이 없거나 Comtrade 자료가 없어 순위를 내지 못했습니다", "먼저_보낼_품목": None})
+            why = (GAPS[c]["빈 곳"] + " → " + GAPS[c]["다음 출처"]) if c in GAPS else "비교 조건(한국 수출 100만 달러·그 나라 수입 2,000만 달러)을 넘는 품목이 없거나 Comtrade 자료가 없어 순위를 내지 못했습니다"
+            out.append({"나라": c, "표시": "자료에 없는 나라", "종합순위": None, "종합점수": None, "품목별": [], "빈_곳": [GAPS[c]] if c in GAPS else [],
+                        "종합순위_없는_이유": why, "먼저_보낼_품목": None})
             continue
-        items = []
+        items, missing = [], []
         for k, v in m["품목"].items():
             if hs and not any(CMD_KEY.get(h) == k for h in hs):
                 continue
             rows = per.get(k, [])
             me = next((i for i, r in enumerate(rows) if r["country"] == c), None)
             rank = (me + 1) if me is not None else None
-            cmp = next((r for r in rows if r["country"] != c), None)  # 1위, 자기가 1위면 2위
+            cmp = next((r for r in rows if r["country"] != c), None)
             cm = M.get(cmp["country"], {}).get("품목", {}).get(k) if cmp else None
             items.append({"품목": k, "순위": rank, "전체": len(rows), "점수": next((r["score"] for r in rows if r["country"] == c), v["품목점수"]), "지표백분위": v["지표백분위"],
                           "수입_연증가": v["수입_연증가"], "수입무게_연증가": v["수입무게_연증가"], "한국수출_연증가": v["한국수출_연증가"], "한국점유율": v["한국점유율"], "한국가공식품_연증가": v["한국가공식품_연증가"],
                           "한국수출_2021→2025_백만달러": [round(v["한국수출_2021USD"] / 1e6, 2), round(v["한국수출_2025USD"] / 1e6, 2)], "수입_최근_백만달러": round(v["수입_최근USD"] / 1e6),
-                          "비교": cmp["country"] if cmp else None, "비교_순위": (rows.index(cmp) + 1) if cmp else None,
+                          "비교": cmp["country"] if cmp else None, "비교_순위": (rows.index(cmp) + 1) if cmp else None, "비교_지표백분위": cm["지표백분위"] if cm else None,
                           "비교_지표": {"수입_연증가": cm["수입_연증가"], "한국수출_연증가": cm["한국수출_연증가"], "한국점유율": cm["한국점유율"], "한국가공식품_연증가": cm["한국가공식품_연증가"]} if cm else None})
-        items.sort(key=lambda x: x["순위"] or 99)
+        for h in (hs or []):
+            k = CMD_KEY.get(h)
+            if k and k not in m["품목"]:
+                missing.append(k)
+        items.sort(key=lambda x: -(x["점수"] or 0))  # 먼저 보낼 품목 = 점수가 가장 높은 품목
         gaps = [g for g in R.get("자료_빈_곳", []) if g["country"] == c]
         if not gaps:
             for h in R.get("재수출_확인", []):
@@ -128,7 +153,8 @@ def country_answer(focus, hs, intent, per, overall):
         orank = next((i + 1 for i, r in enumerate(overall) if r["country"] == c), None)
         out.append({"나라": c, "표시": m["tag"], "종합순위": orank, "종합점수": next((r["score"] for r in overall if r["country"] == c), None), "종합_전체": len(overall),
                     "종합순위_없는_이유": None if orank else "비교 조건(한국 수출 100만 달러·그 나라 수입 2,000만 달러)을 넘는 품목이 2개 미만이라 종합 순위에는 없음(품목별 순위만)",
-                    "품목별": items, "빈_곳": gaps,
+                    "품목별": items, "빈_곳": gaps, "품목_없음": missing,
+                    "가진_품목": [k.split("(")[0] for k in m["품목"]],
                     "먼저_보낼_품목": (items[0]["품목"] if items else None) if intent == "item_for_country" else None})
     return out
 
@@ -140,10 +166,12 @@ def one_line(ans):
         parts = []
         for c in ans["나라_답"]:
             if not c["품목별"]:
+                if c.get("품목_없음"):
+                    parts.append(f"{J(c['나라'],'은','는')} {'·'.join(k.split('(')[0] for k in c['품목_없음'])} 품목이 비교 조건(한국 수출 100만 달러·그 나라 수입 2,000만 달러)을 못 넘어 순위가 없습니다. {c['나라']}에서 조건을 넘는 품목은 {'·'.join(c.get('가진_품목') or []) or '없음'}입니다."); continue
                 parts.append(f"{J(c['나라'],'은','는')} {c['종합순위_없는_이유']}."); continue
             i = c["품목별"][0]; nm = i["품목"].split("(")[0]; L = i.get("비교_지표") or {}
             if it == "item_for_country":
-                parts.append(f"{c['나라']}에 먼저 보낼 품목은 {nm}입니다({len(c['품목별'])}개 품목 중 순위가 가장 높은 {i['순위']}위/{i['전체']}, 점수 {i['점수']}). 그 나라 수입은 {grew(i['수입_연증가'])}고, 한국 수출은 {grew(i['한국수출_연증가'])}으며 점유율은 {i['한국점유율']*100:.2f}%입니다.")
+                parts.append(f"{c['나라']}에 먼저 보낼 품목은 {nm}입니다({len(c['품목별'])}개 품목 중 점수가 가장 높은 {i['점수']}점, {i['순위']}위/{i['전체']}). 그 나라 수입은 {grew(i['수입_연증가'])}고, 한국 수출은 {grew(i['한국수출_연증가'])}으며 점유율은 {i['한국점유율']*100:.2f}%입니다." + (f" {'·'.join(k.split('(')[0] for k in c['품목_없음'])}은 비교 조건 미달." if c.get("품목_없음") else ""))
             else:
                 who = f"{i['비교_순위']}위 {J(i['비교'],'과','와')}" if i.get("비교") else ""
                 cmp = f" {who} 견주면 그 나라 수입 증가 {P(i['수입_연증가'])} vs {P(L.get('수입_연증가'))}, 한국 수출 증가 {P(i['한국수출_연증가'])} vs {P(L.get('한국수출_연증가'))}, 한국 점유율 {i['한국점유율']*100:.2f}% vs {(L.get('한국점유율') or 0)*100:.2f}%입니다." if L else ""
@@ -154,22 +182,27 @@ def one_line(ans):
     if it == "rising":
         rs = ans.get("올라오는_곳") or []
         if not rs:
-            return ans.get("주의") or "이 조건(품목·지역)에서는 「올라오는 곳」 규칙에 걸리는 나라가 없습니다."
-        return "지금은 작지만 올라오는 곳은 " + ", ".join(f"{x['나라']} {x['품목'].split('(')[0]}(한국 수출 연 {P(x['연증가'])}, 시장 {x['시장_백만달러']}백만 달러)" for x in rs[:3]) + "입니다. 바로 보낼 곳이 아니라 테스트 물량을 넣어 볼 곳입니다."
+            return ans.get("올라오는_곳_주의") or "이 조건(품목·지역)에서는 「올라오는 곳」 규칙에 걸리는 나라가 없습니다."
+        new = [x for x in rs if "IR 주요 수출국" != x["표시"]]
+        old = [x for x in rs if "IR 주요 수출국" == x["표시"]]
+        s_ = "지금은 작지만 올라오는 곳은 " + ", ".join(f"{x['나라']} {x['품목'].split('(')[0]}(한국 수출 연 {P(x['연증가'])}, 시장 {x['시장_백만달러']}백만 달러)" for x in new[:3]) + "입니다. 바로 보낼 곳이 아니라 테스트 물량을 넣어 볼 곳입니다."
+        if old:
+            s_ += " " + ", ".join(f"{x['나라']} {x['품목'].split('(')[0]}(연 {P(x['연증가'])})" for x in old) + "도 같은 규칙에 걸리지만 이미 주요 수출국이라 「넓힐 곳」입니다."
+        return s_
     if it == "gaps" and ans.get("모르는_것"):
         return "이 자료로 모르는 것은 " + "; ".join(f"{g['country']} {g['빈 곳']}" for g in ans["모르는_것"][:4]) + " 등입니다. 다음 출처는 표에 있습니다."
     t = ans.get("유망국가_TOP3")
     if t:
         if not t["나라"]:
             return ans.get("주의") or "해당 조건에 맞는 나라가 없습니다."
-        s = f"유망국가 TOP3는 {' · '.join(t['나라'])}입니다({t['기준']})."
+        s_ = f"유망국가 TOP3는 {' · '.join(t['나라'])}입니다({t['기준']})."
         k = ans.get("검산")
         if k and k.get("해당"):
             cnt = k.get("등장횟수") or {}
-            s += f" 기준과 비교 범위를 바꿔 {k.get('세트수')}번 다시 계산해도 " + ", ".join(f"{c} {cnt.get(c, 0)}번" for c in t["나라"]) + " TOP3에 남았습니다."
+            s_ += f" 기준·범위·품목 정의를 바꾼 {k.get('세트수')}가지 계산에서 " + ", ".join(f"{c} {cnt.get(c, 0)}번" for c in t["나라"]) + " TOP3에 남았습니다."
         if ans.get("가중치"):
-            s += f" ({ans['가중치']}로 다시 계산한 결과)"
-        return s
+            s_ += f" ({ans['가중치']}로 다시 계산한 결과)"
+        return s_
     return ""
 
 
@@ -177,30 +210,35 @@ def answer_from_results(plan):
     """계획이 정한 품목·지역·제외·가중치·대상 나라로 결과 파일을 좁혀 실제 답을 만든다(코드)."""
     steps = plan["steps"]
     hs = {s["args"].get("hs") for s in steps if (s.get("args") or {}).get("hs")}
-    region = next((s["args"].get("region") for s in steps if (s.get("args") or {}).get("region") and s["args"]["region"] != "전체"), None)
+    regions = [s["args"].get("region") for s in steps if (s.get("args") or {}).get("region") and s["args"]["region"] in PT.REGION]
     excl_regions = [r for r in (plan.get("exclude_regions") or []) if r in PT.REGION]
-    if region in excl_regions:
-        region = None
-    codes = region_codes(region)
+    regions = [r for r in dict.fromkeys(regions) if r not in excl_regions]
+    region = "·".join(regions) if regions else None
+    codes = set().union(*[PT.REGION[r] for r in regions]) if regions else None
+    if codes is not None and all(r in regions for r in PT.REGION):  # 전 지역을 다 적으면 전체와 같음
+        codes, region = None, None
     excl = set()
     for r in excl_regions:
         excl |= PT.REGION[r]
     M = R["나라별_지표"]
-    for c in (plan.get("exclude_countries") or []):
+    excl_names = [norm_country(c) for c in (plan.get("exclude_countries") or [])]
+    for c in excl_names:
         if c in M:
             excl.add(M[c]["code"])
     weights = next((s["args"].get("weights") for s in steps if s["tool"] == "score" and (s.get("args") or {}).get("weights")), None)
     weights = {k: v for k, v in (weights or {}).items() if v} or None
     tools = [s["tool"] for s in steps]
     intent = plan.get("intent") or "top3"
-    focus_all = plan.get("focus_countries") or []
+    focus_all = [norm_country(c) for c in (plan.get("focus_countries") or [])]
     focus = [c for c in focus_all if c in M or c in PLANT]
     unknown = [c for c in focus_all if c not in M and c not in PLANT]
     per, overall, wnote = rankings(weights, codes, excl)
     if hs:
         per = {k: v for k, v in per.items() if any(CMD_KEY.get(h) == k for h in hs)}
-    cond = (" · " + region if codes else "") + (" · " + "·".join(excl_regions) + " 제외" if excl_regions else "") + (" · " + "·".join(plan.get("exclude_countries") or []) + " 제외" if plan.get("exclude_countries") else "")
-    ans = {"품목": [CMD_KEY[h] for h in hs if h in CMD_KEY], "지역": region or "전체", "제외": excl_regions + (plan.get("exclude_countries") or []), "질문_종류": intent}
+    cond = (" · " + region if codes else "") + (" · " + "·".join(excl_regions) + " 제외" if excl_regions else "") + (" · " + "·".join(excl_names) + " 제외" if excl_names else "")
+    ans = {"품목": [CMD_KEY[h] for h in hs if h in CMD_KEY], "지역": region or "전체", "제외": excl_regions + excl_names, "질문_종류": intent}
+    if plan.get("limits"):
+        ans["도구_한계"] = plan["limits"]
     if wnote:
         ans["가중치"] = wnote
     if unknown:
@@ -228,6 +266,8 @@ def answer_from_results(plan):
             if c["country"] not in want:
                 continue
             for s in c.get("sentences", []):
+                if hs and not any(any(i.split("-")[1] == h for h in hs) for i in s.get("row_ids", []) if i.count("-") >= 2):
+                    continue  # 물은 품목의 문장만
                 v = VER.get(s["text"], {})
                 srcs = [EV[i]["source"] for i in s.get("row_ids", []) if i in EV]
                 if str(v.get("판정", "")).startswith("표시"):
@@ -262,7 +302,7 @@ def answer_from_results(plan):
     return ans
 
 
-app = FastAPI(title="K-푸드 수출 유망국가 에이전트")
+app = FastAPI(title="K-푸드 수출 유망국가 에이전트", docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class Ask(BaseModel):
@@ -287,9 +327,9 @@ def examples():
 
 
 DATA_USED = [
-    {"자료": "UN Comtrade(유엔 무역통계) 공개 API", "무엇": "나라별 품목 수입(금액·무게)·수출, 한국의 나라별 수출 — HS 1905·1806·1704·2105와 가공식품 16~21류, 2021~2025년 연간치", "범위": "원본 54개 파일, 비교 16개국(넓힌 검산 26개국)", "한계": "베트남·몽골·UAE는 2023년까지, 영국 2025년 무게 없음, 멕시코 무게 없음"},
+    {"자료": "UN Comtrade(유엔 무역통계) 공개 API", "무엇": "나라별 품목 수입(금액·무게)·수출, 한국의 나라별 수출 — HS 1905·1806·1704·2105와 가공식품 16~21류, 2021~2025년 연간치", "범위": "원본 85개 파일(6단위 포함), 종합 순위 16개국·품목별 최대 26개국", "한계": "베트남·몽골·UAE는 2023년까지, 영국 2025년 무게 없음, 멕시코 무게 없음"},
     {"자료": "롯데웰푸드 IR 2025년 4분기·2026년 2분기", "무엇": "해외 공장 나라(제외 규칙), 주요 수출국·입점국(맞춰 보기), 수출 실적", "범위": "공개 자료", "한계": "제품별 수출액·신고 품목코드는 없음"},
-    {"자료": "aT KATI 국가조사·시장동향 보고서", "무엇": "소비 트렌드 문장(쪽 번호와 함께)", "범위": "영국·네덜란드·미국 3개국, 직접 뽑음", "한계": "자동 추출 아직 없음, 다른 나라 없음"},
+    {"자료": "aT KATI 국가조사·시장동향 보고서", "무엇": "소비 트렌드 문장(쪽 번호와 함께)", "범위": "영국·네덜란드·미국 3개국, 직접 뽑음(지원서 예시용. 점수엔 아직 미반영)", "한계": "자동 추출 아직 없음, 다른 나라 없음"},
     {"자료": "농림축산식품부 보도자료(2026-01-12)", "무엇": "연간 K-푸드 수출 실적(출처 간 숫자 차이 표시용)", "범위": "2025년", "한계": "품목 분류가 Comtrade와 다름"},
 ]
 MORE_ACCURATE = [
@@ -358,7 +398,8 @@ async def upload(file: UploadFile = File(...), code: str = Form("")):
             bad += 1; continue
         try:
             fv = float(v); iy = int(y)
-            if not (2000 <= iy <= 2030) or fv < 0 or fv > 1e12:
+            import math
+            if not math.isfinite(fv) or not (2000 <= iy <= 2030) or fv < 0 or fv > 1e12:
                 bad += 1; continue
         except Exception:
             bad += 1; continue
@@ -394,7 +435,7 @@ def ask(a: Ask):
         plan, secs, model, usage = PT.make_plan_with_model(q)
     except Exception as e:  # 모델 쪽 오류는 사실대로(서버 로그에 상세, 화면엔 종류만)
         import traceback; traceback.print_exc()
-        raise HTTPException(502, f"모델 호출 실패: {type(e).__name__}: {str(e)[:120]}")
+        raise HTTPException(502, f"모델 호출 실패({type(e).__name__}). 잠시 뒤 다시 시도해 주세요.")
     with _lock:
         if usage:
             _state["tokens_in"] += usage.get("input") or 0; _state["tokens_out"] += usage.get("output") or 0
