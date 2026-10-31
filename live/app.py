@@ -494,7 +494,8 @@ def next_questions(ans, q):
     if "아시아" not in q and "동남아" not in q:
         out.append("동남아에서 캔디는 어느 나라부터?")
     out.append("독일은 입점국인데 왜 순위가 낮아?")
-    return [x for x in out if x != q][:5]
+    out.append("카자흐스탄은 왜 추천에 없어?")
+    return [x for x in out if x != q][:6]
 
 
 if __name__ == "__main__":
