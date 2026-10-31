@@ -215,6 +215,389 @@
    }
   ]
  },
+ "품목별_전체순위_현지공장국가_제외": {
+  "비스킷·과자류(빼빼로·칸쵸 등)": [
+   {
+    "country": "영국",
+    "code": 826,
+    "score": 83.7
+   },
+   {
+    "country": "멕시코",
+    "code": 484,
+    "score": 81.7
+   },
+   {
+    "country": "네덜란드",
+    "code": 528,
+    "score": 79.8
+   },
+   {
+    "country": "아르헨티나",
+    "code": 32,
+    "score": 77.9
+   },
+   {
+    "country": "몽골",
+    "code": 496,
+    "score": 69.2
+   },
+   {
+    "country": "필리핀",
+    "code": 608,
+    "score": 68.3
+   },
+   {
+    "country": "독일",
+    "code": 276,
+    "score": 67.3
+   },
+   {
+    "country": "캐나다",
+    "code": 124,
+    "score": 66.3
+   },
+   {
+    "country": "미국",
+    "code": 842,
+    "score": 65.4
+   },
+   {
+    "country": "아랍에미리트",
+    "code": 784,
+    "score": 62.5
+   },
+   {
+    "country": "사우디아라비아",
+    "code": 682,
+    "score": 53.8
+   },
+   {
+    "country": "브라질",
+    "code": 76,
+    "score": 51.0
+   },
+   {
+    "country": "페루",
+    "code": 604,
+    "score": 50.0
+   },
+   {
+    "country": "호주",
+    "code": 36,
+    "score": 48.1
+   },
+   {
+    "country": "쿠웨이트",
+    "code": 414,
+    "score": 46.2
+   },
+   {
+    "country": "프랑스",
+    "code": 251,
+    "score": 42.3
+   },
+   {
+    "country": "말레이시아",
+    "code": 458,
+    "score": 42.3
+   },
+   {
+    "country": "캄보디아",
+    "code": 116,
+    "score": 36.5
+   },
+   {
+    "country": "태국",
+    "code": 764,
+    "score": 35.6
+   },
+   {
+    "country": "중국",
+    "code": 156,
+    "score": 32.7
+   },
+   {
+    "country": "일본",
+    "code": 392,
+    "score": 25.0
+   },
+   {
+    "country": "인도네시아",
+    "code": 360,
+    "score": 25.0
+   },
+   {
+    "country": "뉴질랜드",
+    "code": 554,
+    "score": 24.0
+   },
+   {
+    "country": "베트남",
+    "code": 704,
+    "score": 24.0
+   },
+   {
+    "country": "싱가포르",
+    "code": 702,
+    "score": 18.3
+   },
+   {
+    "country": "홍콩",
+    "code": 344,
+    "score": 17.3
+   }
+  ],
+  "초콜릿(가나 등)": [
+   {
+    "country": "미국",
+    "code": 842,
+    "score": 85.0
+   },
+   {
+    "country": "필리핀",
+    "code": 608,
+    "score": 60.0
+   },
+   {
+    "country": "베트남",
+    "code": 704,
+    "score": 55.0
+   },
+   {
+    "country": "일본",
+    "code": 392,
+    "score": 45.0
+   },
+   {
+    "country": "홍콩",
+    "code": 344,
+    "score": 30.0
+   },
+   {
+    "country": "중국",
+    "code": 156,
+    "score": 25.0
+   }
+  ],
+  "캔디·껌(설탕 과자)": [
+   {
+    "country": "영국",
+    "code": 826,
+    "score": 86.1
+   },
+   {
+    "country": "캐나다",
+    "code": 124,
+    "score": 72.2
+   },
+   {
+    "country": "미국",
+    "code": 842,
+    "score": 66.7
+   },
+   {
+    "country": "말레이시아",
+    "code": 458,
+    "score": 58.3
+   },
+   {
+    "country": "몽골",
+    "code": 496,
+    "score": 55.6
+   },
+   {
+    "country": "호주",
+    "code": 36,
+    "score": 44.4
+   },
+   {
+    "country": "베트남",
+    "code": 704,
+    "score": 38.9
+   },
+   {
+    "country": "일본",
+    "code": 392,
+    "score": 27.8
+   },
+   {
+    "country": "중국",
+    "code": 156,
+    "score": 25.0
+   },
+   {
+    "country": "홍콩",
+    "code": 344,
+    "score": 25.0
+   }
+  ],
+  "아이스크림(빙과)": [
+   {
+    "country": "네덜란드",
+    "code": 528,
+    "score": 91.7
+   },
+   {
+    "country": "호주",
+    "code": 36,
+    "score": 75.0
+   },
+   {
+    "country": "미국",
+    "code": 842,
+    "score": 68.8
+   },
+   {
+    "country": "사우디아라비아",
+    "code": 682,
+    "score": 60.4
+   },
+   {
+    "country": "일본",
+    "code": 392,
+    "score": 54.2
+   },
+   {
+    "country": "뉴질랜드",
+    "code": 554,
+    "score": 45.8
+   },
+   {
+    "country": "베트남",
+    "code": 704,
+    "score": 45.8
+   },
+   {
+    "country": "아랍에미리트",
+    "code": 784,
+    "score": 45.8
+   },
+   {
+    "country": "필리핀",
+    "code": 608,
+    "score": 39.6
+   },
+   {
+    "country": "캐나다",
+    "code": 124,
+    "score": 33.3
+   },
+   {
+    "country": "홍콩",
+    "code": 344,
+    "score": 33.3
+   },
+   {
+    "country": "중국",
+    "code": 156,
+    "score": 31.2
+   },
+   {
+    "country": "싱가포르",
+    "code": 702,
+    "score": 25.0
+   }
+  ]
+ },
+ "종합_전체순위_현지공장국가_제외": [
+  {
+   "country": "영국",
+   "code": 826,
+   "score": 84.1,
+   "tag": "길리안 판매법인(영국) · 빼빼로 입점국·주요 수출국 목록엔 없음"
+  },
+  {
+   "country": "네덜란드",
+   "code": 528,
+   "score": 82.2,
+   "tag": "IR 입점 나라(네덜란드 Albert Heijn)"
+  },
+  {
+   "country": "미국",
+   "code": 842,
+   "score": 68.3,
+   "tag": "IR 주요 수출국"
+  },
+  {
+   "country": "몽골",
+   "code": 496,
+   "score": 66.6,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "필리핀",
+   "code": 608,
+   "score": 62.1,
+   "tag": "IR 주요 수출국"
+  },
+  {
+   "country": "캐나다",
+   "code": 124,
+   "score": 61.7,
+   "tag": "IR 주요 수출국"
+  },
+  {
+   "country": "아랍에미리트",
+   "code": 784,
+   "score": 59.1,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "사우디아라비아",
+   "code": 682,
+   "score": 55.2,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "호주",
+   "code": 36,
+   "score": 52.1,
+   "tag": "IR 주요 수출국"
+  },
+  {
+   "country": "말레이시아",
+   "code": 458,
+   "score": 45.4,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "베트남",
+   "code": 704,
+   "score": 33.0,
+   "tag": "IR 주요 수출국"
+  },
+  {
+   "country": "일본",
+   "code": 392,
+   "score": 32.1,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "중국",
+   "code": 156,
+   "score": 30.5,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "뉴질랜드",
+   "code": 554,
+   "score": 28.5,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "홍콩",
+   "code": 344,
+   "score": 22.3,
+   "tag": "IR 주요 수출국·입점국 목록에 없음"
+  },
+  {
+   "country": "싱가포르",
+   "code": 702,
+   "score": 19.6,
+   "tag": "싱가포르 판매법인"
+  }
+ ],
  "민감도_TOP3": {
   "기본(각 25%)": [
    "영국",

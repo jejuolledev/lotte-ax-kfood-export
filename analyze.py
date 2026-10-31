@@ -330,6 +330,8 @@ result = {
                           "지표백분위": {CMDS[c]: {k: round(v) for k, v in by[p][c][1].items()} for c in by[p]},
                           "tag": tag_of(p)} for p in top3],
     "품목별_TOP3_현지공장국가_제외": {CMDS[c]: v for c, v in per_cmd.items()},
+    "품목별_전체순위_현지공장국가_제외": {CMDS[c]: [{"country": name(p), "code": p, "score": round(by[p][c][0], 1)} for p in sorted([p for p in by if c in by[p] and p not in PLANT], key=lambda p: -by[p][c][0])] for c in CMDS},
+    "종합_전체순위_현지공장국가_제외": [{"country": name(p), "code": p, "score": round(overall[p], 1), "tag": tag_of(p)} for p in cand],
     "민감도_TOP3": sens,
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
