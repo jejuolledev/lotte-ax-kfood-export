@@ -543,3 +543,8 @@ def next_questions(ans, q):
     if "모르는_것" not in ans:
         out.append("이 답에서 모르는 것과 더 필요한 자료는?")
     return [x for x in dict.fromkeys(out) if x != q][:5]
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
