@@ -233,7 +233,7 @@ def answer_from_results(plan):
     intent = plan.get("intent") or "top3"
     if intent == "off_topic":
         return {"질문_종류": "off_topic", "도구_한계": plan.get("limits"),
-                "한_줄_답": "이 질문은 이 에이전트가 다루는 범위(K-푸드 수출 유망국가: 어느 나라에 무슨 품목을, 왜, 얼마나 믿나, 어떤 자료가 더 필요한가) 밖이라 도구를 돌리지 않았습니다. 예: 「캔디 수출 유망국 TOP3는?」 「독일은 왜 순위가 낮아?」 「중동 빼고 빼빼로는 어디로?」"}
+                "한_줄_답": "이 질문은 K-푸드 신대륙 에이전트가 다루는 범위(K-푸드 수출 유망국가: 어느 나라에 무슨 품목을, 왜, 얼마나 믿나, 어떤 자료가 더 필요한가) 밖이라 도구를 돌리지 않았습니다. 예: 「캔디 수출 유망국 TOP3는?」 「독일은 왜 순위가 낮아?」 「중동 빼고 빼빼로는 어디로?」"}
     focus_all = [norm_country(c) for c in (plan.get("focus_countries") or [])]
     focus = [c for c in focus_all if c in M or c in PLANT]
     unknown = [c for c in focus_all if c not in M and c not in PLANT]
@@ -320,7 +320,7 @@ def answer_from_results(plan):
     return ans
 
 
-app = FastAPI(title="K-푸드 수출 유망국가 에이전트", docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="K-푸드 신대륙 에이전트", docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class Ask(BaseModel):

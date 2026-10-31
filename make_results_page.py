@@ -35,8 +35,8 @@ table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}th,td{bo
 
 top3 = R["TOP3_현지공장국가_제외"]
 parts = [f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>K-푸드 수출 유망국가 — 결과 페이지</title><style>{css}</style></head><body>
-<h1>K-푸드 수출 유망국가 에이전트 — 결과 페이지</h1>
+<title>K-푸드 신대륙 에이전트 — 결과 페이지</title><style>{css}</style></head><body>
+<h1>K-푸드 신대륙 에이전트 — 결과 페이지</h1>
 <p class="muted">LOTTE AX CHALLENGE 2026 예선 · 배정길(모아허브) · 이 페이지는 저장소의 결과 파일로 만든 정적 화면입니다(모델 호출 없음). 기준: {E(R["기준"])} · 만든 날 {datetime.date.today()}</p>
 <p><b>직접 질문해 보기:</b> <a href="https://kfood-agent-598315031037.asia-northeast3.run.app/">kfood-agent-598315031037.asia-northeast3.run.app</a> (질문 1건 = 모델 호출 1번 · 하루 50번 한도) · 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a> — <code>python3 analyze.py &amp;&amp; python3 verify_llm.py</code> 로 키 없이 같은 결과를 다시 얻을 수 있습니다.</p>
 
