@@ -9,6 +9,7 @@ h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 8px;border-left
 .mut{color:var(--mut);font-size:12.5px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:8px 0}
 .top3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.top3 .card{margin:0}.top3 .n{font-size:28px;font-weight:800}.top3 .rank{font-size:12px;color:var(--g);font-weight:700}
 .chip{display:inline-block;background:#e8f3ec;color:var(--g);border-radius:999px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0}.chip.red{background:#fdecec;color:#b42318}.chip.gold{background:#fff4d6;color:#8a5a00}
+button.ex:focus{outline:none}button.ex:focus-visible{outline:2px solid var(--g)}
 table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}th,td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f7f5;font-weight:600}
 textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:1px solid #c9d3cd;border-radius:10px;min-height:60px}
 input{font:inherit;padding:8px 10px;border:1px solid #c9d3cd;border-radius:8px}
@@ -28,7 +29,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600}
 <h2>에이전트에게 물어보기</h2>
 <div class="card live">
  <div class="mut">예시를 누르면 질문 칸에 들어갑니다. 「실행」을 누르면 에이전트가 돌아갑니다. 직접 적어도 됩니다.</div>
- <div id="exbtns" style="margin:8px 0"></div>
+ <div style="margin:8px 0"><span class="mut" style="margin-right:6px">예시:</span><span id="exbtns"></span></div>
  <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
   <input id="code" placeholder="비밀번호" style="width:160px;display:none">
@@ -106,7 +107,7 @@ async function run(q){
   await new Promise(r=>setTimeout(r,220));
  }
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div>${answer(j.답)}<details><summary>과정: 모델이 정한 순서와 실행 기록</summary>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></div>`;
- if(j.다음_질문_예시&&j.다음_질문_예시.length){N.innerHTML='<div class="card"><b>이어서 물어보기</b><div class="mut">답에 맞춰 바뀐 질문입니다. 누르면 질문 칸에 들어가고, 「실행」을 누르면 돌아갑니다.</div><div style="margin-top:6px">'+j.다음_질문_예시.map(x=>btn(x)).join('')+'</div></div>';setButtons(j.다음_질문_예시,false);document.getElementById('q').value=''}
+ if(j.다음_질문_예시&&j.다음_질문_예시.length){N.innerHTML='<div class="card"><b>이어서 물어보기</b><div class="mut">답에 맞춰 바뀐 질문입니다. 누르면 질문 칸에 들어가고, 「실행」을 누르면 돌아갑니다.</div><div style="margin-top:6px"><span class="mut" style="margin-right:6px">예시:</span>'+j.다음_질문_예시.map(x=>btn(x)).join('')+'</div></div>';setButtons(j.다음_질문_예시,false);document.getElementById('q').value=''}
  busy=false;sync();quota();
  R.scrollIntoView({behavior:'smooth',block:'start'});
 }
