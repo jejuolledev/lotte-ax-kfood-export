@@ -25,7 +25,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 </style></head>
 <body><div class="wrap">
 <h1>K-푸드 신대륙 에이전트 <span class="mut" style="font-size:14px;font-weight:500">— 다음에 갈 나라를 찾는 K-푸드 수출 유망국가 에이전트</span></h1>
-<div class="mut">LOTTE AX CHALLENGE 2026 · 배정길(모아허브) · 질문 1건 = OpenAI 호출 1번(모델이 도구 순서를 정함). 순위·검증·빈 곳은 코드가 공개 통계(UN Comtrade)로 냅니다. 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a></div>
+<div class="mut">LOTTE AX CHALLENGE 2026 · 배정길(모아허브) · 질문을 넣으면 에이전트가 순서를 정하고(OpenAI 호출 1번), 공개 통계(UN Comtrade)로 순위·검증·빈 곳을 계산해 답합니다. 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a></div>
 
 <h2>신대륙 에이전트에게 물어보기</h2>
 <div class="card live">
@@ -60,7 +60,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
   <tr><td>과제와 무관한 질문(「내 이름은?」)</td><td>도구를 돌리지 않고 범위 안내 + 예시 질문 3개</td><td>실행 예시 뒤쪽에 기록 있음</td></tr>
  </table>
 </div></details>
-<div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 85개 파일(4단위+빵 뺀 6단위)과 롯데웰푸드 IR(2025년 4분기·2026년 2분기)로 계산합니다. aT KATI 소비 트렌드 문장(영국·네덜란드·미국)은 아직 점수에 넣지 않았습니다. 모델은 도구 순서와 질문 해석만 정하고, 숫자·순위·검증은 코드가 냅니다. 비교 나라 수: 종합 순위(여러 품목 평균)는 「품목 2개 이상이 조건을 넘는」 16개국만 들어가고, 품목별 순위는 품목마다 조건 넘는 나라가 달라 비스킷은 26개국까지 들어갑니다.</div>
+<div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 85개 파일(4단위+빵 뺀 6단위)과 롯데웰푸드 IR(2025년 4분기·2026년 2분기)로 계산합니다. aT KATI 소비 트렌드 문장(영국·네덜란드·미국)은 아직 점수에 넣지 않았습니다. 에이전트 안에서 질문 해석·도구 순서·설명 글은 AI가, 숫자·순위·검증은 계산이 맡습니다. 비교 나라 수: 종합 순위(여러 품목 평균)는 「품목 2개 이상이 조건을 넘는」 16개국만 들어가고, 품목별 순위는 품목마다 조건 넘는 나라가 달라 비스킷은 26개국까지 들어갑니다.</div>
 </div>
 <div id="result"></div>
 <div id="next"></div>
