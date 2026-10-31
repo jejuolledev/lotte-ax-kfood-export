@@ -55,7 +55,7 @@ PLAN_SCHEMA = {
 
 SYSTEM = ("너는 K-푸드 수출 유망국가 에이전트의 계획 단계다. 담당자의 질문을 읽고, 아래 도구를 어떤 순서로 어떤 인자로 부를지 JSON 으로만 답한다. "
           "규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). explain 뒤에는 반드시 verify 가 온다. "
-          "질문에 제품 이름이 있으면 품목코드로 바꾼다(빼빼로·칸쵸=1905, 가나=1806, 캔디=1704, 월드콘=2105). "
+          "질문에 제품 이름이 있으면 품목코드로 바꾼다(빼빼로·칸쵸=1905, 가나=1806, 캔디=1704, 월드콘=2105). 품목을 안 정한 질문(K-푸드 전체·유망국가 전체)이면 hs 를 비워 둔다(= 전체 품목). "
           "질문에 지역이 있으면 fetch_import 의 region 에 넣는다(동남아·동북아·중앙아시아·인도 등은 아시아, 남미·라틴아메리카·멕시코는 중남미, EU·서유럽·동유럽·영국은 유럽, 미국·캐나다는 북미, 걸프·중동은 중동, 호주·뉴질랜드는 오세아니아 — 이 여섯 이름이나 전체만 쓴다).  자료가 없는 나라가 있을 수 있으니 마지막엔 gaps 를 부른다.\n도구 목록:\n"
           + "\n".join(f"- {k}: {v['desc']} / 인자 {json.dumps(v['args'], ensure_ascii=False)}" for k, v in TOOLS.items()))
 
@@ -78,7 +78,7 @@ def check_plan(plan):
             errs.append(f"score 전에 {need - before} 가 없음")
     for s in plan.get("steps", []):
         a = s.get("args") or {}
-        if s["tool"] in ("fetch_import", "fetch_kor_export") and (a.get("hs") not in ("1905", "1806", "1704", "2105")):
+        if s["tool"] in ("fetch_import", "fetch_kor_export") and (a.get("hs") not in (None, "1905", "1806", "1704", "2105")):
             errs.append(f"{s['tool']} 의 hs 가 잘못됨: {a.get('hs')}")
         if s["tool"] == "fetch_import" and a.get("region") not in (None, "전체", *REGION):
             errs.append(f"region 이 잘못됨: {a.get('region')}")
@@ -94,12 +94,13 @@ def run_plan(plan, dry=False):
         t, a = s["tool"], s.get("args") or {}
         t0 = time.time()
         if t == "fetch_import":
-            ctx["hs"].add(a["hs"]); ctx["region"] = a.get("region")
-            rows = [r for r in R["근거행"] if r["id"].split("-")[1] == a["hs"] and r["id"].endswith("-M")]
-            out = f"수입 행 {len(rows)}개(HS {a['hs']}, {a.get('region') or '전체'})"
+            if a.get("hs"): ctx["hs"].add(a["hs"])
+            ctx["region"] = a.get("region")
+            rows = [r for r in R["근거행"] if (not a.get("hs") or r["id"].split("-")[1] == a["hs"]) and r["id"].endswith("-M")]
+            out = f"수입 행 {len(rows)}개(HS {a.get('hs') or '전체 품목'}, {a.get('region') or '전체'})"
         elif t == "fetch_kor_export":
-            rows = [r for r in R["근거행"] if r["id"].split("-")[1] == a["hs"] and r["id"].endswith("-K")]
-            out = f"한국 수출 행 {len(rows)}개(HS {a['hs']})"
+            rows = [r for r in R["근거행"] if (not a.get("hs") or r["id"].split("-")[1] == a["hs"]) and r["id"].endswith("-K")]
+            out = f"한국 수출 행 {len(rows)}개(HS {a.get('hs') or '전체 품목'})"
         elif t == "fetch_trend":
             have = {"영국", "네덜란드", "미국"}
             cs = a.get("countries") or []
