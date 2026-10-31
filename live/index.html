@@ -14,7 +14,7 @@ table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}th,td{bord
 textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:1px solid #c9d3cd;border-radius:10px;min-height:60px}
 input{font:inherit;padding:8px 10px;border:1px solid #c9d3cd;border-radius:8px}
 button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:8px 14px;background:var(--g);color:#fff;font-weight:700}
-button.ex{background:#fff;color:var(--ink);border:1px solid #c9d3cd;font-weight:500;margin:4px 6px 4px 0;padding:7px 11px;font-size:13.5px}button.ex.big{font-size:15px;font-weight:700;border-color:var(--g);color:var(--g)}
+button.ex{background:#fff;color:var(--ink);border:1px solid #c9d3cd;font-weight:500;margin:4px 6px 4px 0;padding:7px 11px;font-size:13.5px}
 button:disabled{opacity:.5;cursor:default}
 .steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.step{background:#f3f7f5;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12.5px}.step.done{background:#e8f3ec;border-color:#bfe0cc}.arrow{color:var(--mut)}
 details{margin:6px 0}summary{cursor:pointer;font-weight:600}
@@ -82,7 +82,7 @@ function block(r,open){return `<details ${open?'open':''} class="card"><summary>
 function pick(q){const t=document.getElementById('q');t.value=q;sync();t.focus()}
 function sync(){document.getElementById('go').disabled=busy||!document.getElementById('q').value.trim()}
 function btn(q,cls){return `<button type="button" class="ex ${cls||''}" data-q="${E(q)}">${E(q)}</button>`}
-function setButtons(list,big){document.getElementById('exbtns').innerHTML=list.map((q,i)=>btn(q,big&&i===0?'big':'')).join('')}
+function setButtons(list){document.getElementById('exbtns').innerHTML=list.map(q=>btn(q)).join('')}
 async function run(q){
  if(busy)return; if(q){document.getElementById('q').value=q}
  q=document.getElementById('q').value.trim(); sync(); const code=document.getElementById('code').value.trim();
@@ -107,15 +107,15 @@ async function run(q){
   await new Promise(r=>setTimeout(r,220));
  }
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div>${answer(j.답)}<details><summary>과정: 모델이 정한 순서와 실행 기록</summary>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></div>`;
- if(j.다음_질문_예시&&j.다음_질문_예시.length){N.innerHTML='<div class="card"><b>이어서 물어보기</b><div class="mut">답에 맞춰 바뀐 질문입니다. 누르면 질문 칸에 들어가고, 「실행」을 누르면 돌아갑니다.</div><div style="margin-top:6px"><span class="mut" style="margin-right:6px">예시:</span>'+j.다음_질문_예시.map(x=>btn(x)).join('')+'</div></div>';setButtons(j.다음_질문_예시,false);document.getElementById('q').value=''}
+ if(j.다음_질문_예시&&j.다음_질문_예시.length){N.innerHTML='<div class="card"><b>이어서 물어보기</b><div class="mut">답에 맞춰 바뀐 질문입니다. 누르면 질문 칸에 들어가고, 「실행」을 누르면 돌아갑니다.</div><div style="margin-top:6px"><span class="mut" style="margin-right:6px">예시:</span>'+j.다음_질문_예시.map(x=>btn(x)).join('')+'</div></div>';setButtons(j.다음_질문_예시);document.getElementById('q').value=''}
  busy=false;sync();quota();
  R.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function fail(q,why){const R=document.getElementById('result');R.innerHTML=`<div class="err"><b>실행하지 못했습니다.</b> ${E(why)}<div style="margin-top:8px"><button type="button" class="ex" data-q="${E(q)}" data-run="1">다시 시도</button> <button type="button" class="ex" data-clear="1">처음부터</button></div><div class="mut" style="margin-top:6px">한도가 끝났거나 서버가 잠시 멈춘 경우엔 아래 「실행 예시」 기록은 그대로 볼 수 있습니다.</div></div>`;busy=false;sync();quota()}
-function clearAll(){busy=false;document.getElementById('q').value='';sync();document.getElementById('result').innerHTML='';document.getElementById('next').innerHTML='';setButtons(FIRST,true);window.scrollTo({top:0,behavior:'smooth'})}
+function clearAll(){busy=false;document.getElementById('q').value='';sync();document.getElementById('result').innerHTML='';document.getElementById('next').innerHTML='';setButtons(FIRST);window.scrollTo({top:0,behavior:'smooth'})}
 async function quota(){try{const s=await (await fetch('status')).json();document.getElementById('quota').textContent=`오늘 ${s.today}/${s.daily_cap} · 누적 ${s.total}/${s.total_cap}`}catch(e){}}
 async function load(){
- setButtons(FIRST,true);
+ setButtons(FIRST);
  const u=new URLSearchParams(location.search);const c=u.get('code');if(c){document.getElementById('code').value=c;try{localStorage.setItem('code',c)}catch(e){}}else{try{const k=localStorage.getItem('code');if(k)document.getElementById('code').value=k}catch(e){}}
  quota();
  let s;try{s=await (await fetch('summary')).json()}catch(e){document.getElementById('basis').innerHTML='<span class="err">미리 계산한 결과를 불러오지 못했습니다. <button type="button" class="ex" data-load="1">다시 시도</button></span>';return}
