@@ -9,7 +9,7 @@ LOTTE AX CHALLENGE 2026 예선 제출용 시범 코드입니다. 배정길(모�
 
 ## 심사위원이 바로 보는 법 (3분)
 
-- **직접 질문해 보기(실행 화면)**: 배포 주소는 지원서·포트폴리오에 적음(비밀번호 `lotte-kfood-2026`). 질문을 넣으면 모델이 도구 순서를 정하고 코드가 검사·실행해 유망국가 TOP3를 맨 위에 냅니다. 예시 질문 6개 버튼과 이미 돌린 기록 6건이 화면에 있고, 「분석한 자료」와 「더 정확해지려면 필요한 자료(역제안)」도 보입니다. 하루 50번·총 300번 한도. 코드는 `live/`.
+- **직접 질문해 보기(실행 화면)**: https://kfood-agent-598315031037.asia-northeast3.run.app/ (비밀번호 `lotte-kfood-2026`). 질문을 넣으면 모델이 도구 순서를 정하고 코드가 검사·실행해 유망국가 TOP3를 맨 위에 냅니다. 예시 질문 6개 버튼과 이미 돌린 기록 6건이 화면에 있고, 「분석한 자료」와 「더 정확해지려면 필요한 자료(역제안)」도 보입니다. 하루 50번·총 300번 한도. 코드는 `live/`.
 - **설치 없이 결과 보기**: https://jejuolledev.github.io/lotte-ax-kfood-export/ — 저장소의 결과 파일로 만든 정적 페이지(TOP3·검산 9번·올라오는 곳·자료 빈 곳·검증 거친 설명 문장·계획 단계 실행 기록). `python3 make_results_page.py` 로 다시 만듭니다.
 - **키 없이 다시 계산**: `git clone` 후 `python3 analyze.py && python3 verify_llm.py` (표준 라이브러리만, 약 0.1초). 받아 둔 UN Comtrade 원자료 54개 파일이 `데이터/raw/` 에 있습니다.
 - **키로 계획 단계 돌리기**: `OPENAI_API_KEY=... python3 plan_tools.py "빼빼로 다음 유럽 나라는 어디인가"` — 모델이 도구 호출 순서를 JSON 으로 정하고, 코드가 계획을 검사(score 없음·explain 뒤 verify 없음·모르는 품목코드면 거부)한 뒤 실행합니다. 키 없이 실행기만 보려면 `python3 plan_tools.py --dry "질문"`. `openai` 패키지가 필요합니다(`pip install openai` 또는 `uv run --with openai python3 plan_tools.py ...`). 실제 호출 기록 6건은 `결과/계획실행_1031_*.json` 에 있습니다(질문·모델이 정한 순서·검사 결과·초·토큰). 8번 호출 중 3번은 모델이 JSON 뒤에 글을 덧붙여 첫 JSON 객체만 썼습니다.

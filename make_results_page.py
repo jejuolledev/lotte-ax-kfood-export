@@ -38,7 +38,7 @@ parts = [f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta na
 <title>K-푸드 수출 유망국가 — 결과 페이지</title><style>{css}</style></head><body>
 <h1>K-푸드 수출 유망국가 에이전트 — 결과 페이지</h1>
 <p class="muted">LOTTE AX CHALLENGE 2026 예선 · 배정길(모아허브) · 이 페이지는 저장소의 결과 파일로 만든 정적 화면입니다(모델 호출 없음). 기준: {E(R["기준"])} · 만든 날 {datetime.date.today()}</p>
-<p>코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a> — <code>python3 analyze.py &amp;&amp; python3 verify_llm.py</code> 로 키 없이 같은 결과를 다시 얻을 수 있습니다.</p>
+<p><b>직접 질문해 보기:</b> <a href="https://kfood-agent-598315031037.asia-northeast3.run.app/">kfood-agent-598315031037.asia-northeast3.run.app</a> (비밀번호 lotte-kfood-2026 · 질문 1건 = 모델 호출 1번 · 하루 50번) · 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a> — <code>python3 analyze.py &amp;&amp; python3 verify_llm.py</code> 로 키 없이 같은 결과를 다시 얻을 수 있습니다.</p>
 
 <h2>1. 지금 보낼 곳 — TOP3 (현지 공장 나라 제외, {R["대상_나라수"]}개국 비교)</h2>
 <div class="top">"""]
