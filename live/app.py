@@ -472,32 +472,74 @@ def ask(a: Ask):
 
 
 def next_questions(ans, q):
-    if ans.get("질문_종류") == "off_topic":
-        return ["K-푸드 수출 유망국가 TOP3는 어디인가", "캔디 수출 유망국 TOP3와 자료가 부족한 나라 알려줘", "독일은 입점국인데 왜 순위가 낮아?"]
-    top = (ans.get("유망국가_TOP3") or {}).get("나라") or []
+    """직전 답에 나온 나라·품목·빈 곳에서만 꼬리를 무는 질문을 만든다(아무거나 넣지 않음)."""
+    it = ans.get("질문_종류")
     out = []
+    def short(k):
+        return (k or "").split("(")[0]
+    if it == "off_topic":
+        return ["K-푸드 수출 유망국가 TOP3는 어디인가"]
     if ans.get("나라_답"):
-        c = ans["나라_답"][0]["나라"]
-        it0 = (ans["나라_답"][0].get("먼저_보낼_품목") or "").split("(")[0]
-        out.append(f"{c}에 먼저 보낼 품목은?" if ans.get("질문_종류") != "item_for_country" else (f"{it0}에서 {c}보다 순위가 높은 나라는 어디야?" if it0 else "K-푸드 수출 유망국가 TOP3는 어디인가"))
+        for c in ans["나라_답"]:
+            n = c["나라"]
+            if c.get("종합순위_없는_이유") and not c["품목별"]:
+                # 공장 나라·자료 없는 나라
+                out.append("K-푸드 수출 유망국가 TOP3는 어디인가")
+                continue
+            top = c["품목별"][0]
+            if it == "item_for_country":
+                out.append(f"{short(top['품목'])}에서 {n}보다 순위가 높은 나라는?")
+                if len(c["품목별"]) > 1:
+                    out.append(f"{n}의 {short(c['품목별'][1]['품목'])}는 왜 {c['품목별'][1]['순위']}위야?")
+            else:
+                out.append(f"{n}에 먼저 보낼 품목은?")
+                if top.get("비교"):
+                    out.append(f"{J(n,'과','와')} {top['비교']} 중 {short(top['품목'])}는 어디가 나아?")
+                    out.append(f"{J(top['비교'],'은','는')} 왜 {short(top['품목'])} {top['비교_순위']}위야?")
+            if c.get("빈_곳"):
+                out.append(f"{n}에서 모르는 자료는 뭐고 어디서 구해?")
+        return [x for x in dict.fromkeys(out) if x != q][:5]
+    if it == "rising":
+        rs = ans.get("올라오는_곳") or []
+        new = [x for x in rs if x["표시"] != "IR 주요 수출국"][:3]
+        for x in new:
+            out.append(f"{J(x['나라'],'은','는')} 왜 TOP3에 없어?")
+        if new:
+            out.append(f"{new[0]['나라']}에 테스트 물량을 넣으려면 뭘 더 알아야 해?")
+        old = [x for x in rs if x["표시"] == "IR 주요 수출국"]
+        if old:
+            out.append(f"{old[0]['나라']} {J(short(old[0]['품목']),'은','는')} 지금 몇 위야?")
         out.append("K-푸드 수출 유망국가 TOP3는 어디인가")
-    if top:
-        out.append(f"{top[0]}에 먼저 보낼 품목과 그 이유는?")
-        if len(top) > 1:
-            out.append(f"왜 {top[1]}인가, 근거 숫자로 보여줘")
+        return [x for x in dict.fromkeys(out) if x != q][:5]
+    if it == "gaps":
+        for g in (ans.get("모르는_것") or [])[:4]:
+            if g["country"] not in ("전체",):
+                out.append(f"{J(g['country'],'은','는')} 자료가 비어 있는데 어떻게 판단했어?")
+        out.append("K-푸드 수출 유망국가 TOP3는 어디인가")
+        return [x for x in dict.fromkeys(out) if x != q][:5]
+    t = ans.get("유망국가_TOP3") or {}
+    names = t.get("나라") or []
+    region = ans.get("지역") if ans.get("지역") not in (None, "전체") else None
+    items = ans.get("품목") or []
+    if names:
+        out.append(f"{names[0]}에 먼저 보낼 품목과 그 이유는?")
+        if len(names) > 1:
+            out.append(f"왜 {names[1]}인가, 근거 숫자로 보여줘")
+        if len(names) > 2:
+            out.append(f"{J(names[2],'은','는')} 왜 3위야?")
+    if ans.get("종합_셋미만_이유"):
+        import re as _re
+        m = _re.search(r"다음 후보는 품목별 순위로 봅니다: ([^(;]+)\(", ans["종합_셋미만_이유"])
+        if m:
+            out.append(f"{J(m.group(1).strip(),'은','는')} 왜 종합 순위에 없어?")
+    if region:
+        out.append(f"{region} 말고 다른 지역에서는 어디가 유망해?")
+    if items and len(items) == 1:
+        out.append(f"{short(items[0])} 말고 다른 품목은 어디가 유망해?")
+    if ans.get("가중치"):
+        out.append("가중치를 기본(각 25%)으로 돌리면 TOP3는?")
     if "올라오는_곳" not in ans:
         out.append("지금은 작지만 빠르게 올라오는 나라는 어디야?")
     if "모르는_것" not in ans:
         out.append("이 답에서 모르는 것과 더 필요한 자료는?")
-    if "유럽" not in q:
-        out.append("유럽에서만 보면 어디가 유망해?")
-    if "아시아" not in q and "동남아" not in q:
-        out.append("동남아에서 캔디는 어느 나라부터?")
-    out.append("독일은 입점국인데 왜 순위가 낮아?")
-    out.append("카자흐스탄은 왜 추천에 없어?")
-    return [x for x in out if x != q][:6]
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+    return [x for x in dict.fromkeys(out) if x != q][:5]
