@@ -1,0 +1,166 @@
+{
+ "질문": "K-푸드 수출 유망국가 TOP3는 어디인가",
+ "모델": "gpt-5.4-mini-2026-03-17",
+ "계획_초": 3.63,
+ "토큰": {
+  "input": 1493,
+  "output": 529
+ },
+ "계획": {
+  "question_understood": "K-푸드 수출 유망국가 TOP3를 알고 싶다.",
+  "intent": "top3",
+  "focus_countries": null,
+  "exclude_regions": null,
+  "exclude_countries": null,
+  "steps": [
+   {
+    "tool": "fetch_import",
+    "args": {
+     "hs": null,
+     "region": "전체",
+     "countries": null,
+     "weights": null,
+     "top_n": null
+    },
+    "why": "K-푸드 전체 품목 기준으로 국가별 수입 규모와 추세를 가져오기 위해"
+   },
+   {
+    "tool": "fetch_kor_export",
+    "args": {
+     "hs": null,
+     "region": null,
+     "countries": null,
+     "weights": null,
+     "top_n": null
+    },
+    "why": "한국의 국가별 K-푸드 수출 실적을 가져와 수출 성장 지표를 계산하기 위해"
+   },
+   {
+    "tool": "score",
+    "args": {
+     "hs": null,
+     "region": null,
+     "countries": null,
+     "weights": null,
+     "top_n": 3
+    },
+    "why": "지표를 종합해 K-푸드 수출 유망국가 TOP3를 산출하기 위해"
+   },
+   {
+    "tool": "gaps",
+    "args": {
+     "hs": null,
+     "region": null,
+     "countries": null,
+     "weights": null,
+     "top_n": null
+    },
+    "why": "자료가 비어 있는 국가나 보완 출처를 확인하기 위해"
+   }
+  ],
+  "_모델_JSON_뒤_덧붙임": "{\"question_understood\":\"K-푸드 수출 유망국가 TOP3를 알고 싶다.\",\"intent\":\"top3\",\"focus_countries\":null,\"exclude_regions\":null,\"exclude_countries\":null,\"steps\":[{\"tool\":\"fetch_import\",\"args\":{\"hs\":null,\"region\":\"전체"
+ },
+ "검사": "통과",
+ "실행": [
+  {
+   "순서": 1,
+   "도구": "fetch_import",
+   "인자": {
+    "hs": null,
+    "region": "전체",
+    "countries": null,
+    "weights": null,
+    "top_n": null
+   },
+   "이유": "K-푸드 전체 품목 기준으로 국가별 수입 규모와 추세를 가져오기 위해",
+   "결과": "수입 행 9개(HS 전체 품목, 전체)",
+   "초": 0.0
+  },
+  {
+   "순서": 2,
+   "도구": "fetch_kor_export",
+   "인자": {
+    "hs": null,
+    "region": null,
+    "countries": null,
+    "weights": null,
+    "top_n": null
+   },
+   "이유": "한국의 국가별 K-푸드 수출 실적을 가져와 수출 성장 지표를 계산하기 위해",
+   "결과": "한국 수출 행 9개(HS 전체 품목)",
+   "초": 0.0
+  },
+  {
+   "순서": 3,
+   "도구": "score",
+   "인자": {
+    "hs": null,
+    "region": null,
+    "countries": null,
+    "weights": null,
+    "top_n": 3
+   },
+   "이유": "지표를 종합해 K-푸드 수출 유망국가 TOP3를 산출하기 위해",
+   "결과": {
+    "종합_TOP3": [
+     "영국",
+     "네덜란드",
+     "미국"
+    ],
+    "품목별": {
+     "비스킷·과자류(빼빼로·칸쵸 등)": [
+      "영국",
+      "멕시코",
+      "네덜란드"
+     ],
+     "초콜릿(가나 등)": [
+      "미국",
+      "필리핀",
+      "베트남"
+     ],
+     "캔디·껌(설탕 과자)": [
+      "영국",
+      "캐나다",
+      "미국"
+     ],
+     "아이스크림(빙과)": [
+      "네덜란드",
+      "호주",
+      "미국"
+     ]
+    },
+    "민감도_등장횟수": {
+     "영국": 9,
+     "네덜란드": 9,
+     "미국": 6,
+     "몽골": 2,
+     "멕시코": 1
+    }
+   },
+   "초": 0.0
+  },
+  {
+   "순서": 4,
+   "도구": "gaps",
+   "인자": {
+    "hs": null,
+    "region": null,
+    "countries": null,
+    "weights": null,
+    "top_n": null
+   },
+   "이유": "자료가 비어 있는 국가나 보완 출처를 확인하기 위해",
+   "결과": [
+    "영국: 수입 무게가 2024년까지",
+    "멕시코: 수입 무게 없음(가격 효과 못 가름)",
+    "전체: 실제 신고 품목코드 미확인(HS 1905로 가정)",
+    "대만: Comtrade에 대만(코드 490) 수입 통계가 없어 비교에서 빠짐 — 한국 비스킷 수출 22.5백만 달러(상대국 4위)",
+    "전체: HS 1905에는 빵·케이크도 들어 있어 과자만의 수입과 다를 수 있음",
+    "전체: 보고서 문장은 영국·네덜란드·미국 3개국만 확보",
+    "네덜란드: 수출(재수출 포함)이 수입의 절반 넘음(수입이 소비인지 모름)",
+    "네덜란드: 수출(재수출 포함)이 수입의 절반 넘음(수입이 소비인지 모름)"
+   ],
+   "초": 0.0
+  }
+ ]
+}

@@ -306,6 +306,9 @@ for p in top3 + [x["code"] for x in rising]:
         elif r["w_last_year"] < 2025:
             gaps.append({"country": name(p), "cmd": CMDS[c], "빈 곳": f"수입 무게가 {r['w_last_year']}년까지", "다음 출처": NEXT_SOURCE["수입_무게_없음"]})
 gaps.append({"country": "전체", "cmd": "빼빼로", "빈 곳": "실제 신고 품목코드 미확인(HS 1905로 가정)", "다음 출처": NEXT_SOURCE["제품_신고코드_미확인"]})
+_tw = {c: DATA[c]["kx"][2025].get(490) for c in CMDS}
+gaps.append({"country": "대만", "cmd": "전 품목", "빈 곳": "Comtrade에 대만(코드 490) 수입 통계가 없어 비교에서 빠짐 — 한국 비스킷 수출 " + f"{(_tw.get('1905') or 0)/1e6:.1f}백만 달러(상대국 4위)", "다음 출처": "대만 재정부 관무서(關務署) 수출입 통계"})
+gaps.append({"country": "전체", "cmd": "비스킷·과자류", "빈 곳": "HS 1905에는 빵·케이크도 들어 있어 과자만의 수입과 다를 수 있음", "다음 출처": "HS 6단위(1905.31 비스킷·1905.90 등)로 다시 받기"})
 gaps.append({"country": "전체", "cmd": "소비 트렌드", "빈 곳": "보고서 문장은 영국·네덜란드·미국 3개국만 확보", "다음 출처": NEXT_SOURCE["트렌드_보고서_없음"]})
 
 # 재수출 확인 표(비스킷·아이스크림): 수입 - 수출
@@ -349,6 +352,7 @@ result = {
     "올라오는_나라_규칙": RISING_RULE,
     "올라오는_나라": rising,
     "자료_빈_곳": gaps,
+    "품목_비중_한국수출2025USD": {CMDS[c]: KOR_TOTAL[c] for c in CMDS},
     "재수출_확인": hub,
     "무게_자료_없는_행": [f"{r['country']} HS{r['cmd']}" for r in ROWS if r["wgrowth"] is None],
     "무게_기준_TOP3후보": {f"{r['country']} HS{r['cmd']}": {"금액_연": round(r["growth"] * 100, 1), "무게_연": round(r["wgrowth"] * 100, 1) if r["wgrowth"] is not None else None, "무게_연도": f"{r['w_base_year']}→{r['w_last_year']}"} for r in ROWS if r["code"] in top3},

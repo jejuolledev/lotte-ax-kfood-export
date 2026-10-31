@@ -1,0 +1,142 @@
+{
+ "질문": "시장 규모를 70%, 나머지 셋은 10%씩으로 가중치를 바꾸면 TOP3가 어떻게 돼?",
+ "모델": "gpt-5.4-mini-2026-03-17",
+ "계획_초": 1.52,
+ "토큰": {
+  "input": 1508,
+  "output": 160
+ },
+ "계획": {
+  "question_understood": "시장 규모 비중을 70%로 하고, 나머지 성장·한국수출성장·K-푸드 전반은 각각 10%씩 둘 때 유망국가 TOP3를 알고 싶다.",
+  "intent": "top3",
+  "focus_countries": null,
+  "exclude_regions": null,
+  "exclude_countries": null,
+  "steps": [
+   {
+    "tool": "fetch_import",
+    "args": {
+     "hs": null,
+     "region": null,
+     "countries": null,
+     "weights": null,
+     "top_n": null
+    },
+    "why": "코드가 보충(계획에 빠져 있던 수집 단계)"
+   },
+   {
+    "tool": "fetch_kor_export",
+    "args": {
+     "hs": null,
+     "region": null,
+     "countries": null,
+     "weights": null,
+     "top_n": null
+    },
+    "why": "코드가 보충(계획에 빠져 있던 수집 단계)"
+   },
+   {
+    "tool": "score",
+    "args": {
+     "hs": null,
+     "region": "전체",
+     "countries": null,
+     "weights": {
+      "size": 0.7,
+      "growth": 0.1,
+      "kgrow": 0.1,
+      "kfood": 0.1
+     },
+     "top_n": 3
+    },
+    "why": "가중치를 변경한 조건에서 전체 품목 기준 TOP3 순위와 점수를 계산한다."
+   }
+  ],
+  "_모델_JSON_뒤_덧붙임": false,
+  "_코드_보충": [
+   "fetch_import",
+   "fetch_kor_export"
+  ]
+ },
+ "검사": "통과",
+ "실행": [
+  {
+   "순서": 1,
+   "도구": "fetch_import",
+   "인자": {
+    "hs": null,
+    "region": null,
+    "countries": null,
+    "weights": null,
+    "top_n": null
+   },
+   "이유": "코드가 보충(계획에 빠져 있던 수집 단계)",
+   "결과": "수입 행 9개(HS 전체 품목, 전체)",
+   "초": 0.0
+  },
+  {
+   "순서": 2,
+   "도구": "fetch_kor_export",
+   "인자": {
+    "hs": null,
+    "region": null,
+    "countries": null,
+    "weights": null,
+    "top_n": null
+   },
+   "이유": "코드가 보충(계획에 빠져 있던 수집 단계)",
+   "결과": "한국 수출 행 9개(HS 전체 품목)",
+   "초": 0.0
+  },
+  {
+   "순서": 3,
+   "도구": "score",
+   "인자": {
+    "hs": null,
+    "region": "전체",
+    "countries": null,
+    "weights": {
+     "size": 0.7,
+     "growth": 0.1,
+     "kgrow": 0.1,
+     "kfood": 0.1
+    },
+    "top_n": 3
+   },
+   "이유": "가중치를 변경한 조건에서 전체 품목 기준 TOP3 순위와 점수를 계산한다.",
+   "결과": {
+    "종합_TOP3": "(가중치 {'size': 0.7, 'growth': 0.1, 'kgrow': 0.1, 'kfood': 0.1} 적용 — 실제 순위는 화면 답 참조)",
+    "품목별": {
+     "비스킷·과자류(빼빼로·칸쵸 등)": [
+      "영국",
+      "멕시코",
+      "네덜란드"
+     ],
+     "초콜릿(가나 등)": [
+      "미국",
+      "필리핀",
+      "베트남"
+     ],
+     "캔디·껌(설탕 과자)": [
+      "영국",
+      "캐나다",
+      "미국"
+     ],
+     "아이스크림(빙과)": [
+      "네덜란드",
+      "호주",
+      "미국"
+     ]
+    },
+    "민감도_등장횟수": {
+     "영국": 9,
+     "네덜란드": 9,
+     "미국": 6,
+     "몽골": 2,
+     "멕시코": 1
+    }
+   },
+   "초": 0.0
+  }
+ ]
+}

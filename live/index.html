@@ -37,7 +37,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600}
   <button id="clear" class="ex" type="button">처음부터</button>
   <span class="mut" id="quota"></span>
  </div>
- <div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 54개 파일, 롯데웰푸드 IR(2025년 4분기·2026년 2분기), aT KATI 보고서(영국·네덜란드·미국)로 분석합니다. 모델은 도구 순서와 설명 문장만 정하고, 숫자·순위·검증은 코드가 냅니다. 비교는 16개국(넓힌 검산 26개국).</div>
+ <div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 54개 파일, 롯데웰푸드 IR(2025년 4분기·2026년 2분기), aT KATI 보고서(영국·네덜란드·미국)로 분석합니다. 모델은 도구 순서와 설명 문장만 정하고, 숫자·순위·검증은 코드가 냅니다. 종합 순위는 품목 2개 이상인 16개국, 품목별 순위는 최대 26개국.</div>
 </div>
 <div id="result"></div>
 <div id="next"></div>
@@ -70,11 +70,11 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600}
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=x=>x==null?'-':Math.round(x*100)+'%';
 const FIRST=["K-푸드 수출 유망국가 TOP3는 어디인가"];
-let busy=false;
+let busy=false,curAC=null,cancelled=false;
 function stepsHtml(o,done){return '<div class="steps">'+o.map((s,i)=>`<span class="step ${i<done?'done':''}" title="${E(s.이유)}">${i<done?'✓ ':''}${i+1}. ${E(s.도구)}${Object.keys(s.인자||{}).length?' <span class="mut">'+E(JSON.stringify(s.인자))+'</span>':''}</span>`).join('<span class="arrow">→</span>')+'</div>'}
 function cA(list){return list.map(c=>`<h3>${E(c.나라)} <span class="mut">${E(c.표시)}</span></h3>
- <div class="mut">${c.종합순위?`종합 ${c.종합순위}위(점수 ${c.종합점수})`:E(c.종합순위_없는_이유||'')}${c.먼저_보낼_품목?` · <b>먼저 보낼 품목: ${E(c.먼저_보낼_품목.split('(')[0])}</b>`:''}</div>
- <table><tr><th>품목</th><th>순위</th><th>점수</th><th>그 나라 수입 연증가(돈/양)</th><th>한국 수출 연증가</th><th>한국 점유율</th><th>K-푸드 전반</th><th>1위 나라(수입·한국수출·점유율)</th></tr>${c.품목별.map(i=>`<tr><td>${E(i.품목.split('(')[0])}</td><td><b>${i.순위??'-'}</b>/${i.전체}</td><td>${i.점수}</td><td>${pct(i.수입_연증가)}${i.수입무게_연증가==null?'':' / '+pct(i.수입무게_연증가)}</td><td>${pct(i.한국수출_연증가)} <span class="mut">(${i['한국수출_2021→2025_백만달러'].join('→')}백만$)</span></td><td>${(i.한국점유율*100).toFixed(2)}%</td><td>${pct(i.한국가공식품_연증가)}</td><td class="mut">${i['1위']?E(i['1위'])+' · '+pct(i['1위_지표'].수입_연증가)+' · '+pct(i['1위_지표'].한국수출_연증가)+' · '+(i['1위_지표'].한국점유율*100).toFixed(2)+'%':'-'}</td></tr>`).join('')}</table>
+ <div class="mut">${c.종합순위?`종합 ${c.종합순위}위/${c.종합_전체}(점수 ${c.종합점수})`:E(c.종합순위_없는_이유||'')}${c.먼저_보낼_품목?` · <b>먼저 보낼 품목: ${E(c.먼저_보낼_품목.split('(')[0])}</b>`:''}</div>
+ <table><tr><th>품목</th><th>순위</th><th>점수</th><th>그 나라 수입 연증가(돈/양)</th><th>한국 수출 연증가</th><th>한국 점유율</th><th>K-푸드 전반</th><th>견줄 나라(순위 · 수입·한국수출·점유율)</th></tr>${c.품목별.map(i=>`<tr><td>${E(i.품목.split('(')[0])}</td><td><b>${i.순위??'-'}</b>/${i.전체}</td><td>${i.점수}</td><td>${pct(i.수입_연증가)}${i.수입무게_연증가==null?'':' / '+pct(i.수입무게_연증가)}</td><td>${pct(i.한국수출_연증가)} <span class="mut">(${i['한국수출_2021→2025_백만달러'].join('→')}백만$)</span></td><td>${(i.한국점유율*100).toFixed(2)}%</td><td>${pct(i.한국가공식품_연증가)}</td><td class="mut">${i.비교?E(i.비교)+'('+i.비교_순위+'위) · '+pct(i.비교_지표.수입_연증가)+' · '+pct(i.비교_지표.한국수출_연증가)+' · '+(i.비교_지표.한국점유율*100).toFixed(2)+'%':'-'}</td></tr>`).join('')}</table>
  ${c.빈_곳.length?`<div class="mut">이 나라에서 모르는 것: ${c.빈_곳.map(g=>E(g['빈 곳'])).join(' · ')}</div>`:''}`).join('')}
 function answer(a){if(!a)return'';let h='';
  if(a.한_줄_답)h+=`<div style="font-size:16px;font-weight:700;line-height:1.55;margin:4px 0 10px;padding:10px 12px;background:#e8f3ec;border-radius:10px">${E(a.한_줄_답)}</div>`;
@@ -82,8 +82,11 @@ function answer(a){if(!a)return'';let h='';
  if(a.유망국가_TOP3&&a.나라_답&&a.나라_답.length)h+=`<div class="mut" style="margin-top:8px">참고 · 유망국가 TOP3(${E(a.유망국가_TOP3.기준)}): ${E(a.유망국가_TOP3.나라.join(' · '))}</div>`;
  else if(a.유망국가_TOP3)h+=`<h3>유망국가 TOP3 <span class="mut">(${E(a.유망국가_TOP3.기준)})</span></h3>`+(a.유망국가_TOP3.나라.length?'<div class="top3">'+a.유망국가_TOP3.나라.map((c,i)=>`<div class="card"><div class="rank">${i+1}위</div><div class="n">${E(c)}</div></div>`).join('')+'</div>':`<div class="err">${E(a.주의||'해당 없음')}</div>`);
  if(a.품목별_TOP3&&Object.keys(a.품목별_TOP3).length&&!(a.나라_답&&a.나라_답.length))h+='<table><tr><th>품목</th><th>1</th><th>2</th><th>3</th></tr>'+Object.entries(a.품목별_TOP3).map(([k,v])=>`<tr><td>${E(k)}</td>${v.map(c=>`<td>${E(c.country)} <span class="mut">${c.score}</span></td>`).join('')}${'<td></td>'.repeat(Math.max(0,3-v.length))}</tr>`).join('')+'</table>';
- if(a.검산)h+=`<div class="mut">기준과 비교 범위를 바꿔 ${a.검산.세트수}번 다시 계산 — 등장 횟수 ${E(Object.entries(a.검산.등장횟수).map(([k,v])=>k+' '+v).join(', '))}</div>`;
- if(a.설명_문장){h+=`<h3>왜 그 나라인가 <span class="mut">검증 통과 ${a.설명_문장.length}문장 · 숨김 ${a.숨긴_문장_수}</span></h3>`+a.설명_문장.map(s=>`<div class="card"><span class="chip">${E(s.나라)}</span>${E(s.문장)}<div class="mut">↳ ${E(s.출처.join(' / '))}</div></div>`).join('')+`<div class="mut">${E(a.설명_주의)}</div>`}
+ if(a.검산&&a.검산.해당)h+=`<div class="mut">기준과 비교 범위를 바꿔 ${a.검산.세트수}번 다시 계산 — 등장 횟수 ${E(Object.entries(a.검산.등장횟수).map(([k,v])=>k+' '+v).join(', '))}</div>`;
+ if(a.가중치)h+=`<div class="chip gold">${E(a.가중치)}로 다시 계산</div>`;
+ if(a.주의&&!(a.유망국가_TOP3&&!a.유망국가_TOP3.나라.length))h+=`<div class="mut">※ ${E(a.주의)}</div>`;
+ if(a.올라오는_곳_주의)h+=`<div class="mut">※ ${E(a.올라오는_곳_주의)}</div>`;
+ if(a.설명_문장){h+=`<h3>왜 그 나라인가 <span class="mut">검증 통과 ${a.설명_문장.length}문장 · 숨김 ${a.숨긴_문장_수}</span></h3>`+a.설명_문장.map(s=>`<div class="card"><span class="chip">${E(s.나라)}</span>${E(s.문장)}${s.사람확인?' <span class="chip gold">해석은 사람 확인</span>':''}<div class="mut">↳ ${E(s.출처.join(' / '))}</div></div>`).join('')+`<div class="mut">${E(a.설명_주의)}</div>`}
  if(a.트렌드_문장)h+=`<div class="mut">소비 트렌드 문장: 있음 ${E(a.트렌드_문장.있음.join(','))||'-'} · 없음 ${E(a.트렌드_문장['없음(다음 출처: aT KATI·KOTRA)'].join(','))||'-'}(→ aT KATI·KOTRA)</div>`;
  if(a.올라오는_곳)h+='<h3>올라오는 곳 <span class="mut">(테스트 물량을 넣어 볼 곳)</span></h3><table><tr><th>나라·품목</th><th>한국 수출 21→25(백만$)</th><th>연증가</th><th>2022기준</th><th>그 나라 수입</th><th>시장(백만$)</th><th>K-푸드 전반</th><th>점유율</th><th>표시</th></tr>'+a.올라오는_곳.map(x=>`<tr><td><b>${E(x.나라)}</b> ${E(x.품목.split('(')[0])}</td><td>${x['한국수출_2021→2025_백만달러'].join(' → ')}</td><td><b>${pct(x.연증가)}</b></td><td>${pct(x['2022기준'])}</td><td>${pct(x.그나라수입_연증가)}</td><td>${x.시장_백만달러}</td><td>${pct(x.K푸드전반_연증가)}</td><td>${(x.점유율*100).toFixed(1)}%</td><td class="mut">${E(x.표시)}</td></tr>`).join('')+'</table>';
  if(a.모르는_것)h+='<h3>모르는 것 — 자료 빈 곳과 다음 출처(역제안)</h3><table><tr><th>어디</th><th>빈 곳</th><th>다음 출처</th></tr>'+a.모르는_것.map(g=>`<tr><td>${E(g.country)} <span class="mut">${E(g.cmd.split('(')[0])}</span></td><td>${E(g['빈 곳'])}</td><td class="mut">${E(g['다음 출처'])}</td></tr>`).join('')+'</table>';
@@ -104,17 +107,17 @@ async function run(q){
  busy=true;sync();N.innerHTML='';
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. 모델이 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
  let res,j;
- const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),45000);
+ const ac=new AbortController();curAC=ac;const timer=setTimeout(()=>ac.abort(),50000);
  try{res=await fetch('ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,code}),signal:ac.signal});
   try{j=await res.json()}catch(e){j={detail:'서버 응답을 읽지 못했습니다(상태 '+res.status+')'}}}
- catch(e){clearTimeout(timer);const why=e.name==='AbortError'?'45초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)':'서버에 연결하지 못했습니다('+E(e.message||e)+')';fail(q,why);return}
+ catch(e){clearTimeout(timer);if(cancelled){cancelled=false;return}const why=e.name==='AbortError'?'50초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)':'서버에 연결하지 못했습니다('+E(e.message||e)+')';fail(q,why);return}
  clearTimeout(timer);
  if(!res.ok){if(res.status===401){document.getElementById('code').style.display='';document.getElementById('code').focus()}fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
  if(!j||!j.순서){fail(q,'서버가 계획을 돌려주지 않았습니다');return}
  // 과정을 순서대로 보여 준 뒤 답
  const steps=j.순서;
  for(let i=0;i<=steps.length;i++){
-  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
+  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
   await new Promise(r=>setTimeout(r,220));
  }
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div>${answer(j.답)}<details><summary>과정: 모델이 정한 순서와 실행 기록</summary>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></div>`;
@@ -123,7 +126,7 @@ async function run(q){
  R.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function fail(q,why){const R=document.getElementById('result');R.innerHTML=`<div class="err"><b>실행하지 못했습니다.</b> ${E(why)}<div style="margin-top:8px"><button type="button" class="ex" data-q="${E(q)}" data-run="1">다시 시도</button> <button type="button" class="ex" data-clear="1">처음부터</button></div><div class="mut" style="margin-top:6px">한도가 끝났거나 서버가 잠시 멈춘 경우엔 아래 「실행 예시」 기록은 그대로 볼 수 있습니다.</div></div>`;busy=false;sync();quota()}
-function clearAll(){busy=false;document.getElementById('q').value='';sync();document.getElementById('exlabel').textContent='예시:';document.getElementById('result').innerHTML='';document.getElementById('next').innerHTML='';setButtons(FIRST);window.scrollTo({top:0,behavior:'smooth'})}
+function clearAll(){if(curAC&&busy){cancelled=true;curAC.abort()}busy=false;document.getElementById('q').value='';sync();document.getElementById('exlabel').textContent='예시:';document.getElementById('result').innerHTML='';document.getElementById('next').innerHTML='';setButtons(FIRST);window.scrollTo({top:0,behavior:'smooth'})}
 async function quota(){try{const s=await (await fetch('status')).json();document.getElementById('quota').textContent=`오늘 ${s.today}/${s.daily_cap} · 누적 ${s.total}/${s.total_cap}`}catch(e){}}
 async function load(){
  setButtons(FIRST);
@@ -150,6 +153,6 @@ document.getElementById('upbtn').onclick=async()=>{const f=document.getElementBy
  catch(e){U.innerHTML=`<div class="err">올리지 못했습니다(${E(e.message||e)}). <button type="button" class="ex" onclick="document.getElementById('upbtn').click()">다시 시도</button></div>`}};
 document.getElementById('q').addEventListener('input',sync);sync();
 document.getElementById('clear').onclick=clearAll;
-document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run()}});
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();run()}});
 load();
 </script></body></html>
