@@ -36,8 +36,8 @@ PLAN_SCHEMA = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "question_understood": {"type": "string", "description": "질문을 한 줄로 다시 쓴 것"},
-        "intent": {"type": "string", "enum": ["top3", "why_country", "item_for_country", "rising", "gaps", "compare"],
-                   "description": "top3=유망국가 묻기 / why_country=특정 나라가 왜 높은지·낮은지 / item_for_country=특정 나라에 먼저 보낼 품목 / rising=작지만 올라오는 나라 / gaps=자료 빈 곳 / compare=나라끼리 비교"},
+        "intent": {"type": "string", "enum": ["top3", "why_country", "item_for_country", "rising", "gaps", "compare", "off_topic"],
+                   "description": "top3=유망국가 묻기 / why_country=특정 나라가 왜 높은지·낮은지 / item_for_country=특정 나라에 먼저 보낼 품목 / rising=작지만 올라오는 나라 / gaps=자료 빈 곳 / compare=나라끼리 비교 / off_topic=K-푸드 수출 유망국가와 무관한 질문(이때 steps 는 빈 배열, limits 에 이유)"},
         "focus_countries": {"type": ["array", "null"], "items": {"type": "string"}, "description": "질문이 가리키는 나라 이름(한국어). 없으면 null"},
         "exclude_regions": {"type": ["array", "null"], "items": {"type": "string"}, "description": "빼라고 한 지역(유럽|아시아|북미|중남미|중동|오세아니아). 없으면 null"},
         "exclude_countries": {"type": ["array", "null"], "items": {"type": "string"}, "description": "빼라고 한 나라 이름. 없으면 null"},
@@ -60,7 +60,7 @@ PLAN_SCHEMA = {
 }
 
 SYSTEM = ("너는 K-푸드 수출 유망국가 에이전트의 계획 단계다. 담당자의 질문을 읽고, 아래 도구를 어떤 순서로 어떤 인자로 부를지 JSON 으로만 답한다. "
-          "먼저 intent(질문 종류)와 focus_countries(질문이 가리키는 나라), 그리고 「~는 빼고」가 있으면 exclude_regions·exclude_countries 를 정한다(빼는 지역은 fetch_import 의 region 에 넣지 않는다). 가중치는 질문이 바꾸라고 할 때만 score 의 weights 에 size(시장 규모)·growth(수입 성장)·kgrow(한국 수출 성장)·kfood(K-푸드 전반) 비중을 합이 1이 되게 넣고, 그 밖엔 반드시 null 로 둔다(기본 가중치 각 25%). 규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). 특정 나라를 묻는 질문(why_country·item_for_country)은 score → explain → verify → gaps 를 포함한다. explain 뒤에는 반드시 verify 가 온다. "
+          "질문이 K-푸드 수출 유망국가(품목·나라·순위·근거·자료)와 무관하면(예: 이름·날씨·잡담) intent=off_topic 으로 두고 도구를 하나도 부르지 않는다(steps 빈 배열). 먼저 intent(질문 종류)와 focus_countries(질문이 가리키는 나라), 그리고 「~는 빼고」가 있으면 exclude_regions·exclude_countries 를 정한다(빼는 지역은 fetch_import 의 region 에 넣지 않는다). 가중치는 질문이 바꾸라고 할 때만 score 의 weights 에 size(시장 규모)·growth(수입 성장)·kgrow(한국 수출 성장)·kfood(K-푸드 전반) 비중을 합이 1이 되게 넣고, 그 밖엔 반드시 null 로 둔다(기본 가중치 각 25%). 규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). 특정 나라를 묻는 질문(why_country·item_for_country)은 score → explain → verify → gaps 를 포함한다. explain 뒤에는 반드시 verify 가 온다. "
           "질문에 제품 이름이 있으면 품목코드로 바꾼다(빼빼로·칸쵸=1905, 가나=1806, 캔디=1704, 월드콘=2105). 품목을 안 정한 질문(K-푸드 전체·유망국가 전체)이면 hs 를 비워 둔다(= 전체 품목). "
           "질문에 지역이 없으면 region 은 null(전체)로 두고 지역을 지어내지 않는다. 뺄 지역은 exclude_regions 에만 쓰고 나머지 지역으로 쪼개지 않는다. 질문에 지역이 있으면 fetch_import 의 region 에 넣는다(동남아·동북아·중앙아시아·인도 등은 아시아, 남미·라틴아메리카·멕시코는 중남미, EU·서유럽·동유럽·영국은 유럽, 미국·캐나다는 북미, 걸프·중동은 중동, 호주·뉴질랜드는 오세아니아 — 이 여섯 이름이나 전체만 쓴다).  자료가 없는 나라가 있을 수 있으니 마지막엔 gaps 를 부른다. 도구가 못 하는 것(예: 품목 6단위 분리, 소비 트렌드 자동 수집, 롯데 제품별 실적)은 limits 에 적는다.\n도구 목록:\n"
           + "\n".join(f"- {k}: {v['desc']} / 인자 {json.dumps(v['args'], ensure_ascii=False)}" for k, v in TOOLS.items()))
@@ -73,6 +73,8 @@ def check_plan(plan):
     for t in tools:
         if t not in TOOLS:
             errs.append(f"모르는 도구 {t}")
+    if plan.get("intent") == "off_topic":
+        return errs  # 무관한 질문: 도구 없이 안내만
     if "score" not in tools and plan.get("intent") not in ("rising", "gaps"):
         errs.append("score 없음(순위가 안 나옴)")
     if "explain" in tools and ("verify" not in tools or tools.index("verify") < tools.index("explain")):
