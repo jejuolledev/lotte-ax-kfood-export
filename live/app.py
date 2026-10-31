@@ -463,7 +463,7 @@ def ask(a: Ask):
         plan, secs, model, usage = PT.make_plan_with_model(q)
     except Exception as e:  # 모델 쪽 오류는 사실대로(서버 로그에 상세, 화면엔 종류만)
         import traceback; traceback.print_exc()
-        raise HTTPException(502, f"모델 호출 실패({type(e).__name__}). 잠시 뒤 다시 시도해 주세요.")
+        raise HTTPException(502, f"AI 호출 실패({type(e).__name__}). 잠시 뒤 다시 시도해 주세요.")
     with _lock:
         if usage:
             _state["tokens_in"] += usage.get("input") or 0; _state["tokens_out"] += usage.get("output") or 0

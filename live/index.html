@@ -40,7 +40,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
   <span class="mut" id="quota"></span>
  </div>
  <details class="flow" style="margin:10px 0 0"><summary>오류 확인 — 이상한 입력을 넣으면 어떻게 되나</summary><div style="margin-top:8px">
- <div class="mut">모델 호출 없이 서버가 바로 거르는 것들입니다. 눌러서 실제 응답을 보세요.</div>
+ <div class="mut">AI를 부르지 않고 서버가 바로 거르는 것들입니다. 눌러서 실제 응답을 보세요.</div>
  <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">
   <button type="button" class="ex" data-err="empty">빈 질문 보내기</button>
   <button type="button" class="ex" data-err="long">301자 질문 보내기</button>
@@ -52,11 +52,11 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
  <div style="margin-top:10px"><b>돈이 들거나 재현이 어려운 경우</b> — 이럴 때 화면에 이렇게 나옵니다(코드의 실제 문구):</div>
  <table style="font-size:12.5px"><tr><th>상황</th><th>화면 문구</th><th>그다음</th></tr>
   <tr><td>하루 50번·총 300번 한도 끝</td><td>「오늘 한도(50번) 또는 총 한도(300번)가 끝났습니다. 아래 실행 예시는 그대로 볼 수 있습니다.」</td><td>다시 시도·처음부터 버튼, 예시 기록은 계속 보임</td></tr>
-  <tr><td>모델 호출 실패(OpenAI 쪽 오류)</td><td>「모델 호출 실패(오류 종류). 잠시 뒤 다시 시도해 주세요.」</td><td>다시 시도 버튼</td></tr>
+  <tr><td>AI 호출 실패(OpenAI 쪽 오류)</td><td>「모델 호출 실패(오류 종류). 잠시 뒤 다시 시도해 주세요.」</td><td>다시 시도 버튼</td></tr>
   <tr><td>50초 안에 응답 없음</td><td>「50초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)」</td><td>다시 시도 버튼. 서버 쪽 모델 대기는 20초×2회</td></tr>
   <tr><td>인터넷 끊김</td><td>「서버에 연결하지 못했습니다(…)」</td><td>다시 시도 버튼</td></tr>
-  <tr><td>모델이 계획을 잘못 짬(점수 도구 없음·설명 뒤 검증 없음·모르는 품목코드)</td><td>검사 결과에 거부 이유가 적히고 답은 비움. 빠진 수집 단계는 코드가 보충</td><td>흐름 칸에 「보충」 표시</td></tr>
-  <tr><td>모델이 계획 JSON을 두 번 보냄</td><td>첫 것만 쓰고 회색 표시 「계획 JSON 2개 → 첫 것 사용」</td><td>정상 진행</td></tr>
+  <tr><td>AI가 계획을 잘못 짬(점수 도구 없음·설명 뒤 검증 없음·모르는 품목코드)</td><td>검사 결과에 거부 이유가 적히고 답은 비움. 빠진 수집 단계는 코드가 보충</td><td>흐름 칸에 「보충」 표시</td></tr>
+  <tr><td>AI가 계획 JSON을 두 번 보냄</td><td>첫 것만 쓰고 회색 표시 「계획 JSON 2개 → 첫 것 사용」</td><td>정상 진행</td></tr>
   <tr><td>과제와 무관한 질문(「내 이름은?」)</td><td>도구를 돌리지 않고 범위 안내 + 예시 질문 3개</td><td>실행 예시 뒤쪽에 기록 있음</td></tr>
  </table>
 </div></details>
@@ -107,7 +107,7 @@ function cA(list){return list.map(c=>`<h3>${E(c.나라)} <span class="mut">${E(c
  ${c.빈_곳.length?`<div class="mut">이 나라에서 모르는 것: ${c.빈_곳.map(g=>E(g['빈 곳'])).join(' · ')}</div>`:''}`).join('')}
 function bars(rows,opt){opt=opt||{};const max=opt.max||Math.max(...rows.map(r=>r.v))||1;return '<div style="margin:6px 0 10px">'+rows.map(r=>`<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:3px 0"><div style="width:${opt.lw||110}px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${E(r.l)}">${E(r.l)}</div><div style="flex:1;background:#eef1ef;border-radius:4px;height:14px;position:relative"><div style="width:${Math.max(0,Math.min(100,r.v/max*100))}%;height:100%;background:${r.hl?'var(--g)':'#b9c8bf'};border-radius:4px"></div></div><div style="width:${opt.vw||90}px;font-variant-numeric:tabular-nums">${E(r.t??r.v)}</div></div>`).join('')+(opt.cap?`<div class="mut">${E(opt.cap)}</div>`:'')+'</div>'}
 function answer(a){if(!a)return'';let h='';
- if(a.도구_한계)h+=`<div class="mut" style="margin:4px 0">※ 도구가 못 한 것(모델이 적음): ${E(a.도구_한계)}</div>`;
+ if(a.도구_한계)h+=`<div class="mut" style="margin:4px 0">※ 도구가 못 한 것(AI가 적음): ${E(a.도구_한계)}</div>`;
  if(a.한_줄_답)h+=`<div style="font-size:16px;font-weight:700;line-height:1.55;margin:4px 0 10px;padding:10px 12px;background:#e8f3ec;border-radius:10px">${E(a.한_줄_답)}</div>`;
  if(a.나라_답&&a.나라_답.length){h+=cA(a.나라_답)}
  if(a.유망국가_TOP3&&a.나라_답&&a.나라_답.length)h+=`<div class="mut" style="margin-top:8px">참고 · 유망국가 TOP3(${E(a.유망국가_TOP3.기준)}): ${E(a.유망국가_TOP3.나라.join(' · '))}</div>`;
@@ -124,8 +124,8 @@ function answer(a){if(!a)return'';let h='';
  if(a.올라오는_곳&&a.올라오는_곳.length)h+='<h3>올라오는 곳 <span class="mut">(테스트 물량을 넣어 볼 곳)</span></h3><table><tr><th>나라·품목</th><th>한국 수출 21→25(백만$)</th><th>연증가</th><th>2022기준</th><th>그 나라 수입</th><th>시장(백만$)</th><th>K-푸드 전반</th><th>점유율</th><th>표시</th></tr>'+a.올라오는_곳.map(x=>`<tr><td><b>${E(x.나라)}</b> ${E(x.품목.split('(')[0])}</td><td>${x['한국수출_2021→2025_백만달러'].join(' → ')}</td><td><b>${pct(x.연증가)}</b></td><td>${pct(x['2022기준'])}</td><td>${pct(x.그나라수입_연증가)}</td><td>${x.시장_백만달러}</td><td>${pct(x.K푸드전반_연증가)}</td><td>${(x.점유율*100).toFixed(1)}%</td><td class="mut">${E(x.표시)}</td></tr>`).join('')+'</table>';
  if(a.모르는_것)h+='<h3>모르는 것 — 자료 빈 곳과 다음 출처(역제안)</h3><table><tr><th>어디</th><th>빈 곳</th><th>다음 출처</th></tr>'+a.모르는_것.map(g=>`<tr><td>${E(g.country)} <span class="mut">${E(g.cmd.split('(')[0])}</span></td><td>${E(g['빈 곳'])}</td><td class="mut">${E(g['다음 출처'])}</td></tr>`).join('')+'</table>';
  return h}
-function meta(r){return `${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip gray" title="모델이 계획 JSON을 두 번 보내 첫 것을 썼습니다">계획 JSON 2개 → 첫 것 사용</span>':''}`}
-function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${r.순서.length}단계</summary>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>${answer(r.답)}</details>`}
+function meta(r){return `${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip gray" title="AI가 계획 JSON을 두 번 보내 첫 것을 썼습니다">계획 JSON 2개 → 첫 것 사용</span>':''}`}
+function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${r.순서.length}단계</summary>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut" style="margin-top:6px">AI가 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>${answer(r.답)}</details>`}
 function pick(q){const t=document.getElementById('q');t.value=q;sync();t.focus()}
 function sync(){document.getElementById('go').disabled=busy||!document.getElementById('q').value.trim()}
 function btn(q,cls){return `<button type="button" class="ex ${cls||''}" data-q="${E(q)}">${E(q)}</button>`}
@@ -138,7 +138,7 @@ async function run(q){
 
  try{localStorage.setItem('code',code)}catch(e){}
  busy=true;sync();N.innerHTML='';
- R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. 모델이 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. AI가 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
  let res,j;
  const ac=new AbortController();curAC=ac;const timer=setTimeout(()=>ac.abort(),50000);
  try{res=await fetch('ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,code}),signal:ac.signal});
@@ -147,14 +147,14 @@ async function run(q){
  clearTimeout(timer);
  if(!res.ok){if(res.status===401){document.getElementById('code').style.display='';document.getElementById('code').focus()}fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
  if(!j||!j.순서){fail(q,'서버가 계획을 돌려주지 않았습니다');return}
- if(!j.답){fail(q,'모델이 짠 계획을 코드가 거부했습니다: '+(Array.isArray(j.검사)?j.검사.join(' / '):j.검사)+'. 질문을 조금 바꿔 다시 시도해 주세요(예: 지역은 하나씩, 품목은 이름으로).');return}
+ if(!j.답){fail(q,'AI가 짠 계획을 검사에서 거부했습니다: '+(Array.isArray(j.검사)?j.검사.join(' / '):j.검사)+'. 질문을 조금 바꿔 다시 시도해 주세요(예: 지역은 하나씩, 품목은 이름으로).');return}
  // 과정을 순서대로 보여 준 뒤 답
  const steps=j.순서;
  for(let i=0;i<=steps.length;i++){
   R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
   await new Promise(r=>setTimeout(r,220));
  }
- R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${steps.length?steps.length+'단계':'도구 없음'}</summary><div class="mut" style="margin:6px 0">1. 모델이 질문을 읽고 도구 순서를 정함(${j.초??j.계획_초}초) → 2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<details style="margin-top:6px"><summary class="mut" style="font-weight:500">실행 기록(원문) 보기 ▾</summary><pre class="mut" style="white-space:pre-wrap;font-size:11.5px">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></details>${answer(j.답)}</div>`;
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${steps.length?steps.length+'단계':'도구 없음'}</summary><div class="mut" style="margin:6px 0">1. AI가 질문을 읽고 도구 순서를 정함(${j.초??j.계획_초}초) → 2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut" style="margin-top:6px">AI가 이해한 질문: ${E(j.질문_이해)}</div>`:''}<details style="margin-top:6px"><summary class="mut" style="font-weight:500">실행 기록(원문) 보기 ▾</summary><pre class="mut" style="white-space:pre-wrap;font-size:11.5px">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></details>${answer(j.답)}</div>`;
  if(j.다음_질문_예시&&j.다음_질문_예시.length){setButtons(j.다음_질문_예시);document.getElementById('exlabel').textContent='이어서 물어볼 예시:';document.getElementById('q').value='';sync();document.querySelector('.card.live').scrollIntoView({behavior:'smooth',block:'start'})}
  busy=false;sync();quota();
  R.scrollIntoView({behavior:'smooth',block:'start'});
