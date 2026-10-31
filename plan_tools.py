@@ -128,7 +128,7 @@ def run_plan(plan, dry=False):
 
 def make_plan_with_model(question):
     from openai import OpenAI  # 키는 환경변수 OPENAI_API_KEY — 코드에 적지 않는다
-    client = OpenAI()
+    client = OpenAI(timeout=30.0, max_retries=1)  # 30초 안에 답 없으면 오류로(화면에서 안내)
     t0 = time.time()
     resp = client.responses.create(
         model="gpt-5.4-mini",

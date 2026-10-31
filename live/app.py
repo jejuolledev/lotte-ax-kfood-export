@@ -61,7 +61,7 @@ def answer_from_results(plan):
         ans["검산"] = {"세트수": R["민감도_세트수"], "등장횟수": R["민감도_TOP3_등장횟수"]}
         if note:
             ans["주의"] = note
-        if hs and per:
+        if len(hs) == 1 and per:
             k0 = next(iter(per)); ans["유망국가_TOP3"] = {"기준": k0 + (f" · {region}" if codes else ""), "나라": [c["country"] for c in per[k0]]}
         else:
             ans["유망국가_TOP3"] = {"기준": "종합(현지 공장 나라 제외)" + (f" · {region}" if codes else ""), "나라": [t["country"] for t in top[:3]]}
@@ -186,8 +186,28 @@ def ask(a: Ask):
     if not errs:
         rec["실행"] = PT.run_plan(plan)
         rec["답"] = answer_from_results(plan)
+    rec["다음_질문_예시"] = next_questions(rec.get("답") or {}, q)
     rec["전체_초"] = round(time.time() - t0, 2)
     return JSONResponse(rec)
+
+
+def next_questions(ans, q):
+    top = (ans.get("유망국가_TOP3") or {}).get("나라") or []
+    out = []
+    if top:
+        out.append(f"{top[0]}에 먼저 보낼 품목과 그 이유는?")
+        if len(top) > 1:
+            out.append(f"왜 {top[1]}인가, 근거 숫자로 보여줘")
+    if "올라오는_곳" not in ans:
+        out.append("지금은 작지만 빠르게 올라오는 나라는 어디야?")
+    if "모르는_것" not in ans:
+        out.append("이 답에서 모르는 것과 더 필요한 자료는?")
+    if "유럽" not in q:
+        out.append("유럽에서만 보면 어디가 유망해?")
+    if "아시아" not in q and "동남아" not in q:
+        out.append("동남아에서 캔디는 어느 나라부터?")
+    out.append("독일은 입점국인데 왜 순위가 낮아?")
+    return [x for x in out if x != q][:5]
 
 
 if __name__ == "__main__":

@@ -8,93 +8,125 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;m
 h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 8px;border-left:4px solid var(--g);padding-left:10px}h3{font-size:14px;margin:12px 0 6px}
 .mut{color:var(--mut);font-size:12.5px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:8px 0}
 .top3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.top3 .card{margin:0}.top3 .n{font-size:28px;font-weight:800}.top3 .rank{font-size:12px;color:var(--g);font-weight:700}
-.chip{display:inline-block;background:#e8f3ec;color:var(--g);border-radius:999px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0}.chip.red{background:#fdecec;color:#b42318}.chip.gold{background:#fff4d6;color:#8a5a00}.chip.gray{background:#eef1ef;color:#555}
+.chip{display:inline-block;background:#e8f3ec;color:var(--g);border-radius:999px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0}.chip.red{background:#fdecec;color:#b42318}.chip.gold{background:#fff4d6;color:#8a5a00}
 table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}th,td{border-bottom:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}th{background:#f3f7f5;font-weight:600}
-textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:1px solid #c9d3cd;border-radius:10px;min-height:64px}
+textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px;border:1px solid #c9d3cd;border-radius:10px;min-height:60px}
 input{font:inherit;padding:8px 10px;border:1px solid #c9d3cd;border-radius:8px}
 button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:8px 14px;background:var(--g);color:#fff;font-weight:700}
-button.ex{background:#fff;color:var(--ink);border:1px solid #c9d3cd;font-weight:500;margin:4px 6px 4px 0;padding:6px 10px;font-size:13px}
-.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.step{background:#f3f7f5;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12.5px}.arrow{color:var(--mut)}
+button.ex{background:#fff;color:var(--ink);border:1px solid #c9d3cd;font-weight:500;margin:4px 6px 4px 0;padding:7px 11px;font-size:13.5px}button.ex.big{font-size:15px;font-weight:700;border-color:var(--g);color:var(--g)}
+button:disabled{opacity:.5;cursor:default}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.step{background:#f3f7f5;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12.5px}.step.done{background:#e8f3ec;border-color:#bfe0cc}.arrow{color:var(--mut)}
 details{margin:6px 0}summary{cursor:pointer;font-weight:600}
 .err{background:#fdecec;color:#b42318;padding:10px 12px;border-radius:8px}
+.live{border:2px solid var(--g)}
 @media(max-width:700px){.top3{grid-template-columns:1fr}}
 </style></head>
 <body><div class="wrap">
 <h1>K-푸드 수출 유망국가 에이전트</h1>
-<div class="mut">LOTTE AX CHALLENGE 2026 · 배정길(모아허브) · 질문 1건 = OpenAI 호출 1번(계획 단계). 순위·검증·빈 곳은 코드가 공개 통계(UN Comtrade)로 냅니다. 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a></div>
+<div class="mut">LOTTE AX CHALLENGE 2026 · 배정길(모아허브) · 질문 1건 = OpenAI 호출 1번(모델이 도구 순서를 정함). 순위·검증·빈 곳은 코드가 공개 통계(UN Comtrade)로 냅니다. 코드·원자료: <a href="https://github.com/jejuolledev/lotte-ax-kfood-export">github.com/jejuolledev/lotte-ax-kfood-export</a></div>
 
-<h2>유망국가 TOP3 <span class="mut" id="basis"></span></h2>
-<div class="top3" id="top3"></div>
-<div class="mut" id="sens" style="margin-top:6px"></div>
-<div id="peritem"></div>
-<h2>분석한 자료 <span class="mut">(무엇으로 계산했나)</span></h2>
-<div id="used"></div>
-
-<h2>물어보기</h2>
-<div class="card">
- <div class="mut">예시를 누르거나 직접 적으세요. 모델이 도구 순서를 정하고, 코드가 계획을 검사한 뒤 결과 파일로 답을 만듭니다.</div>
+<h2>에이전트에게 물어보기</h2>
+<div class="card live">
+ <div class="mut">아래 질문을 누르면 바로 실행됩니다. 직접 적어도 됩니다.</div>
  <div id="exbtns" style="margin:8px 0"></div>
- <textarea id="q" placeholder="예: 빼빼로 다음 유럽 나라는 어디인가"></textarea>
+ <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
-  <input id="code" placeholder="비밀번호(지원서·README)" style="width:200px">
+  <input id="code" placeholder="비밀번호" style="width:160px">
   <button id="go">실행</button>
+  <button id="clear" class="ex" type="button">처음부터</button>
   <span class="mut" id="quota"></span>
  </div>
 </div>
 <div id="result"></div>
+<div id="next"></div>
 
-<h2>실행 예시 6건 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음)</span></h2>
+<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 6건 — 한도가 끝나도 볼 수 있음)</span></h2>
 <div id="examples"></div>
 
-<h2>올라오는 곳 <span class="mut">(지금 TOP3 밖, 작지만 빠른 나라 · 테스트 물량을 넣어 볼 곳)</span></h2>
-<div id="rising"></div>
+<h2>분석한 자료 <span class="mut">(무엇으로 계산했나)</span></h2>
+<div id="used"></div>
+
 <h2>더 정확해지려면 필요한 자료 <span class="mut">(역제안)</span></h2>
 <div class="mut">먼저, 이번 계산에서 코드가 자동으로 찾은 빈 곳과 다음 출처:</div>
 <div id="gaps"></div>
 <div class="mut" style="margin-top:8px">그리고 받으면 결과가 달라지는 자료:</div>
 <div id="more"></div>
+
+<h2>참고 · 미리 계산해 둔 결과 전체</h2>
+<div class="mut" id="basis"></div>
+<div class="top3" id="top3" style="margin-top:6px"></div>
+<div class="mut" id="sens" style="margin-top:6px"></div>
+<div id="peritem"></div>
+<h3>올라오는 곳 <span class="mut">(지금 TOP3 밖, 작지만 빠른 나라 · 테스트 물량을 넣어 볼 곳)</span></h3>
+<div id="rising"></div>
 <div class="mut" style="margin-top:20px">한계: 검증기는 숫자 베껴 쓰기 오류를 거를 뿐 추천이 옳은지는 보장하지 않습니다. 추천은 담당자가 확인하기 전까지 「초안」입니다. 설명 문장은 미리 생성·검증해 둔 것이고 이 화면에서 새로 쓰지 않습니다.</div>
 </div>
 <script>
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=x=>x==null?'-':Math.round(x*100)+'%';
-const EX=["빼빼로 다음 유럽 나라는 어디인가","가나 초콜릿을 중남미에 보내려면 어느 나라부터?","월드콘 아이스크림, 아시아에서 지금 작지만 빠르게 크는 나라는?","캔디 수출 유망국 TOP3와 자료가 부족한 나라 알려줘","독일에 빼빼로가 왜 7위인지 설명해줘","오세아니아 비스킷 시장 순위, 소비 트렌드 포함"];
-function steps(o){return '<div class="steps">'+o.map((s,i)=>`<span class="step" title="${E(s.이유)}">${i+1}. ${E(s.도구)}${Object.keys(s.인자||{}).length?' <span class="mut">'+E(JSON.stringify(s.인자))+'</span>':''}</span>`).join('<span class="arrow">→</span>')+'</div>'}
+const FIRST=["K-푸드 수출 유망국가 TOP3는 어디인가","빼빼로 다음 유럽 나라는 어디인가","지금은 작지만 빠르게 올라오는 나라는?","캔디 수출 유망국 TOP3와 자료가 부족한 나라 알려줘","독일에 빼빼로가 왜 7위인지 설명해줘"];
+let busy=false;
+function stepsHtml(o,done){return '<div class="steps">'+o.map((s,i)=>`<span class="step ${i<done?'done':''}" title="${E(s.이유)}">${i<done?'✓ ':''}${i+1}. ${E(s.도구)}${Object.keys(s.인자||{}).length?' <span class="mut">'+E(JSON.stringify(s.인자))+'</span>':''}</span>`).join('<span class="arrow">→</span>')+'</div>'}
 function answer(a){if(!a)return'';let h='';
- if(a.유망국가_TOP3)h+=`<h3>유망국가 TOP3 <span class="mut">(${E(a.유망국가_TOP3.기준)})</span></h3><div class="top3">`+a.유망국가_TOP3.나라.map((c,i)=>`<div class="card"><div class="rank">${i+1}위</div><div class="n">${E(c)}</div></div>`).join('')+'</div>';
- if(a.품목별_TOP3)h+='<table><tr><th>품목</th><th>1</th><th>2</th><th>3</th></tr>'+Object.entries(a.품목별_TOP3).map(([k,v])=>`<tr><td>${E(k)}</td>${v.map(c=>`<td>${E(c.country)} <span class="mut">${c.score}</span></td>`).join('')}</tr>`).join('')+'</table>';
- if(a.검산)h+=`<div class="mut">기준을 바꿔 ${a.검산.세트수}번 다시 계산 — 등장 횟수 ${E(Object.entries(a.검산.등장횟수).map(([k,v])=>k+' '+v).join(', '))}</div>`;
+ if(a.유망국가_TOP3)h+=`<h3>유망국가 TOP3 <span class="mut">(${E(a.유망국가_TOP3.기준)})</span></h3>`+(a.유망국가_TOP3.나라.length?'<div class="top3">'+a.유망국가_TOP3.나라.map((c,i)=>`<div class="card"><div class="rank">${i+1}위</div><div class="n">${E(c)}</div></div>`).join('')+'</div>':`<div class="err">${E(a.주의||'해당 없음')}</div>`);
+ if(a.품목별_TOP3&&Object.keys(a.품목별_TOP3).length)h+='<table><tr><th>품목</th><th>1</th><th>2</th><th>3</th></tr>'+Object.entries(a.품목별_TOP3).map(([k,v])=>`<tr><td>${E(k)}</td>${v.map(c=>`<td>${E(c.country)} <span class="mut">${c.score}</span></td>`).join('')}${'<td></td>'.repeat(Math.max(0,3-v.length))}</tr>`).join('')+'</table>';
+ if(a.검산)h+=`<div class="mut">기준과 비교 범위를 바꿔 ${a.검산.세트수}번 다시 계산 — 등장 횟수 ${E(Object.entries(a.검산.등장횟수).map(([k,v])=>k+' '+v).join(', '))}</div>`;
  if(a.설명_문장){h+=`<h3>왜 그 나라인가 <span class="mut">검증 통과 ${a.설명_문장.length}문장 · 숨김 ${a.숨긴_문장_수}</span></h3>`+a.설명_문장.map(s=>`<div class="card"><span class="chip">${E(s.나라)}</span>${E(s.문장)}<div class="mut">↳ ${E(s.출처.join(' / '))}</div></div>`).join('')+`<div class="mut">${E(a.설명_주의)}</div>`}
  if(a.트렌드_문장)h+=`<div class="mut">소비 트렌드 문장: 있음 ${E(a.트렌드_문장.있음.join(','))||'-'} · 없음 ${E(a.트렌드_문장['없음(다음 출처: aT KATI·KOTRA)'].join(','))||'-'}(→ aT KATI·KOTRA)</div>`;
- if(a.올라오는_곳)h+='<h3>올라오는 곳</h3><table><tr><th>나라·품목</th><th>한국 수출 21→25(백만$)</th><th>연증가</th><th>2022기준</th><th>그 나라 수입</th><th>시장(백만$)</th><th>K-푸드 전반</th><th>점유율</th><th>표시</th></tr>'+a.올라오는_곳.map(x=>`<tr><td><b>${E(x.나라)}</b> ${E(x.품목.split('(')[0])}</td><td>${x['한국수출_2021→2025_백만달러'].join(' → ')}</td><td><b>${pct(x.연증가)}</b></td><td>${pct(x['2022기준'])}</td><td>${pct(x.그나라수입_연증가)}</td><td>${x.시장_백만달러}</td><td>${pct(x.K푸드전반_연증가)}</td><td>${(x.점유율*100).toFixed(1)}%</td><td class="mut">${E(x.표시)}</td></tr>`).join('')+'</table>';
+ if(a.올라오는_곳)h+='<h3>올라오는 곳 <span class="mut">(테스트 물량을 넣어 볼 곳)</span></h3><table><tr><th>나라·품목</th><th>한국 수출 21→25(백만$)</th><th>연증가</th><th>2022기준</th><th>그 나라 수입</th><th>시장(백만$)</th><th>K-푸드 전반</th><th>점유율</th><th>표시</th></tr>'+a.올라오는_곳.map(x=>`<tr><td><b>${E(x.나라)}</b> ${E(x.품목.split('(')[0])}</td><td>${x['한국수출_2021→2025_백만달러'].join(' → ')}</td><td><b>${pct(x.연증가)}</b></td><td>${pct(x['2022기준'])}</td><td>${pct(x.그나라수입_연증가)}</td><td>${x.시장_백만달러}</td><td>${pct(x.K푸드전반_연증가)}</td><td>${(x.점유율*100).toFixed(1)}%</td><td class="mut">${E(x.표시)}</td></tr>`).join('')+'</table>';
  if(a.모르는_것)h+='<h3>모르는 것 — 자료 빈 곳과 다음 출처(역제안)</h3><table><tr><th>어디</th><th>빈 곳</th><th>다음 출처</th></tr>'+a.모르는_것.map(g=>`<tr><td>${E(g.country)} <span class="mut">${E(g.cmd.split('(')[0])}</span></td><td>${E(g['빈 곳'])}</td><td class="mut">${E(g['다음 출처'])}</td></tr>`).join('')+'</table>';
  return h}
-function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip red">JSON 뒤 덧붙임 → 첫 JSON만 사용</span>':''}</span></summary>
- ${answer(r.답)}<h3>모델이 정한 순서 <span class="mut">(코드가 검사: score 없음·explain 뒤 verify 없음·모르는 품목코드면 거부)</span></h3>${steps(r.순서)}${r.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>`}
+function meta(r){return `${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip red">JSON 뒤 덧붙임 → 첫 JSON만 사용</span>':''}`}
+function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary>${answer(r.답)}<h3>모델이 정한 순서 <span class="mut">(코드가 검사: score 없음·explain 뒤 verify 없음·모르는 품목코드면 거부)</span></h3>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>`}
+function setButtons(list,big){document.getElementById('exbtns').innerHTML=list.map((q,i)=>`<button class="ex ${big&&i===0?'big':''}" onclick="run(${JSON.stringify(q)})">${E(q)}</button>`).join('')}
+async function run(q){
+ if(busy)return; if(q){document.getElementById('q').value=q}
+ q=document.getElementById('q').value.trim(); const code=document.getElementById('code').value.trim();
+ const R=document.getElementById('result'), N=document.getElementById('next');
+ if(!q){R.innerHTML='<div class="err">질문을 적어 주세요.</div>';return}
+ if(!code){R.innerHTML='<div class="err">비밀번호를 넣어 주세요(지원서·README에 있음).</div>';document.getElementById('code').focus();return}
+ try{localStorage.setItem('code',code)}catch(e){}
+ busy=true;document.getElementById('go').disabled=true;N.innerHTML='';
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. 모델이 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
+ let res,j;
+ const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),45000);
+ try{res=await fetch('ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,code}),signal:ac.signal});
+  try{j=await res.json()}catch(e){j={detail:'서버 응답을 읽지 못했습니다(상태 '+res.status+')'}}}
+ catch(e){clearTimeout(timer);const why=e.name==='AbortError'?'45초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)':'서버에 연결하지 못했습니다('+E(e.message||e)+')';fail(q,why);return}
+ clearTimeout(timer);
+ if(!res.ok){fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
+ if(!j||!j.순서){fail(q,'서버가 계획을 돌려주지 않았습니다');return}
+ // 과정을 순서대로 보여 준 뒤 답
+ const steps=j.순서;
+ for(let i=0;i<=steps.length;i++){
+  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
+  await new Promise(r=>setTimeout(r,220));
+ }
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div>${answer(j.답)}<details><summary>과정: 모델이 정한 순서와 실행 기록</summary>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></div>`;
+ if(j.다음_질문_예시&&j.다음_질문_예시.length){N.innerHTML='<div class="card"><b>이어서 물어보기</b><div class="mut">답에 맞춰 바뀐 질문입니다. 누르면 바로 실행됩니다.</div><div style="margin-top:6px">'+j.다음_질문_예시.map(x=>`<button class="ex" onclick="run(${JSON.stringify(x)})">${E(x)}</button>`).join('')+'</div></div>';setButtons(j.다음_질문_예시,false)}
+ busy=false;document.getElementById('go').disabled=false;quota();
+ R.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function fail(q,why){const R=document.getElementById('result');R.innerHTML=`<div class="err"><b>실행하지 못했습니다.</b> ${E(why)}<div style="margin-top:8px"><button class="ex" onclick="run(${JSON.stringify(q)})">다시 시도</button> <button class="ex" onclick="clearAll()">처음부터</button></div><div class="mut" style="margin-top:6px">한도가 끝났거나 서버가 잠시 멈춘 경우엔 아래 「실행 예시」 기록은 그대로 볼 수 있습니다.</div></div>`;busy=false;document.getElementById('go').disabled=false;quota()}
+function clearAll(){busy=false;document.getElementById('go').disabled=false;document.getElementById('q').value='';document.getElementById('result').innerHTML='';document.getElementById('next').innerHTML='';setButtons(FIRST,true);window.scrollTo({top:0,behavior:'smooth'})}
+async function quota(){try{const s=await (await fetch('status')).json();document.getElementById('quota').textContent=`오늘 ${s.today}/${s.daily_cap} · 누적 ${s.total}/${s.total_cap}`}catch(e){}}
 async function load(){
- const s=await (await fetch('summary')).json();
+ setButtons(FIRST,true);
+ const u=new URLSearchParams(location.search);const c=u.get('code');if(c){document.getElementById('code').value=c;try{localStorage.setItem('code',c)}catch(e){}}else{try{const k=localStorage.getItem('code');if(k)document.getElementById('code').value=k}catch(e){}}
+ quota();
+ let s;try{s=await (await fetch('summary')).json()}catch(e){document.getElementById('basis').innerHTML='<span class="err">미리 계산한 결과를 불러오지 못했습니다. <button class="ex" onclick="load()">다시 시도</button></span>';return}
  document.getElementById('basis').textContent=`(${s.대상_나라수}개국 비교, 현지 공장 나라 제외 · ${s.기준})`;
  document.getElementById('top3').innerHTML=s.유망국가_TOP3.map((t,i)=>`<div class="card"><div class="rank">${i+1}위 · 종합 ${t.점수}</div><div class="n">${E(t.나라)}</div><div class="mut">${E(Object.entries(t.품목점수).map(([k,v])=>k.split('(')[0]+' '+Math.round(v)).join(' · '))}</div><div class="mut">${E(t.표시)}</div></div>`).join('');
  document.getElementById('sens').innerHTML=`기준과 비교 범위를 바꿔 ${s.검산.세트수}번 다시 계산 — ${E(Object.entries(s.검산.등장횟수).map(([k,v])=>k+' '+v+'번').join(', '))}${s.범위_넓힘_상위10?` · 26개국으로 넓히면 ${E(s.범위_넓힘_상위10.slice(0,3).map(x=>x[0]).join('·'))}`:''}`;
  document.getElementById('peritem').innerHTML='<table><tr><th>품목</th><th>1</th><th>2</th><th>3</th></tr>'+Object.entries(s.품목별_TOP3).map(([k,v])=>`<tr><td>${E(k)}</td>${v.map(c=>`<td>${E(c.country)} <span class="mut">${c.score}</span></td>`).join('')}</tr>`).join('')+'</table>';
- document.getElementById('rising').innerHTML=answer({올라오는_곳:s.올라오는_곳.map(x=>({나라:x.country,품목:x.cmd,'한국수출_2021→2025_백만달러':[(x.kor_2021_usd/1e6).toFixed(2),(x.kor_2025_usd/1e6).toFixed(2)],연증가:x.kgrow_2021base,'2022기준':x.kgrow_2022base,그나라수입_연증가:x.import_growth,시장_백만달러:Math.round(x['그나라_수입시장_USD']/1e6),K푸드전반_연증가:x['한국가공식품_연증가율'],점유율:x.kor_share_2025,표시:x.주의||x.tag}))}).replace('<h3>올라오는 곳</h3>','');
- document.getElementById('gaps').innerHTML=answer({모르는_것:s.모르는_것}).replace('<h3>모르는 것</h3>','');
+ document.getElementById('rising').innerHTML=answer({올라오는_곳:s.올라오는_곳.map(x=>({나라:x.country,품목:x.cmd,'한국수출_2021→2025_백만달러':[(x.kor_2021_usd/1e6).toFixed(2),(x.kor_2025_usd/1e6).toFixed(2)],연증가:x.kgrow_2021base,'2022기준':x.kgrow_2022base,그나라수입_연증가:x.import_growth,시장_백만달러:Math.round(x['그나라_수입시장_USD']/1e6),K푸드전반_연증가:x['한국가공식품_연증가율'],점유율:x.kor_share_2025,표시:x.주의||x.tag}))}).replace(/<h3>.*?<\/h3>/,'');
+ document.getElementById('gaps').innerHTML=answer({모르는_것:s.모르는_것}).replace(/<h3>.*?<\/h3>/,'');
  document.getElementById('used').innerHTML='<table><tr><th>자료</th><th>무엇</th><th>범위</th><th>한계</th></tr>'+s.분석한_자료.map(d=>`<tr><td><b>${E(d.자료)}</b></td><td>${E(d.무엇)}</td><td>${E(d.범위)}</td><td class="mut">${E(d.한계)}</td></tr>`).join('')+'</table>';
  document.getElementById('more').innerHTML='<table><tr><th>필요한 자료</th><th>무엇이 좋아지나</th><th>어디서</th></tr>'+s.더_정확해지려면.map(d=>`<tr><td><b>${E(d['필요한 자료'])}</b></td><td>${E(d['무엇이 좋아지나'])}</td><td class="mut">${E(d.어디서)}</td></tr>`).join('')+'</table>';
- document.getElementById('exbtns').innerHTML=EX.map(q=>`<button class="ex" onclick="document.getElementById('q').value=${JSON.stringify(q)}">${E(q)}</button>`).join('');
- const ex=await (await fetch('examples')).json();
- document.getElementById('examples').innerHTML=ex.map((r,i)=>block(r,i===0)).join('');
- try{const c=localStorage.getItem('code');if(c)document.getElementById('code').value=c}catch(e){}
- quota();
+ try{const ex=await (await fetch('examples')).json();document.getElementById('examples').innerHTML=ex.map((r,i)=>block(r,false)).join('')}catch(e){document.getElementById('examples').innerHTML='<div class="err">실행 예시를 불러오지 못했습니다. <button class="ex" onclick="load()">다시 시도</button></div>'}
 }
-async function quota(){try{const s=await (await fetch('status')).json();document.getElementById('quota').textContent=`오늘 ${s.today}/${s.daily_cap} · 누적 ${s.total}/${s.total_cap}`}catch(e){}}
-document.getElementById('go').onclick=async()=>{
- const q=document.getElementById('q').value.trim(),code=document.getElementById('code').value;try{localStorage.setItem('code',code)}catch(e){}
- const R=document.getElementById('result');R.innerHTML='<div class="card">모델이 도구 순서를 정하는 중… (2~5초)</div>';
- const res=await fetch('ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,code})});
- const j=await res.json();
- if(!res.ok){R.innerHTML=`<div class="err">${E(j.detail||res.status)}</div>`;quota();return}
- R.innerHTML=block(j,true);quota();
-};
+document.getElementById('go').onclick=()=>run();
+document.getElementById('clear').onclick=clearAll;
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run()}});
 load();
 </script></body></html>
