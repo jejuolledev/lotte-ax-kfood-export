@@ -18,7 +18,7 @@ button.ex{background:#fff;color:var(--ink);border:1px solid #c9d3cd;font-weight:
 button:disabled{opacity:.5;cursor:default}
 .steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.step{background:#f3f7f5;border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:12.5px}.step.done{background:#e8f3ec;border-color:#bfe0cc}.arrow{color:var(--mut)}
 details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outline:none}summary::-webkit-details-marker{display:none}
-.flow>summary{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--g);color:var(--g);border-radius:999px;padding:6px 14px;font-size:13px}.flow>summary::after{content:"펼쳐 보기 ▾";font-weight:500;color:var(--mut)}.flow[open]>summary::after{content:"접기 ▴"}.flow>summary:hover{background:#e8f3ec}
+.flow>summary{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--g);color:var(--g);border-radius:999px;padding:6px 14px;font-size:13px}.flow>summary::after{content:"펼치기 ▾";font-weight:500;color:var(--mut)}.flow[open]>summary::after{content:"접기 ▴"}.flow>summary:hover{background:#e8f3ec}
 .err{background:#fdecec;color:#b42318;padding:10px 12px;border-radius:8px}
 .live{border:2px solid var(--g)}
 @media(max-width:700px){.top3{grid-template-columns:1fr}}
@@ -93,7 +93,7 @@ function answer(a){if(!a)return'';let h='';
  if(a.모르는_것)h+='<h3>모르는 것 — 자료 빈 곳과 다음 출처(역제안)</h3><table><tr><th>어디</th><th>빈 곳</th><th>다음 출처</th></tr>'+a.모르는_것.map(g=>`<tr><td>${E(g.country)} <span class="mut">${E(g.cmd.split('(')[0])}</span></td><td>${E(g['빈 곳'])}</td><td class="mut">${E(g['다음 출처'])}</td></tr>`).join('')+'</table>';
  return h}
 function meta(r){return `${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip red">JSON 뒤 덧붙임 → 첫 JSON만 사용</span>':''}`}
-function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary><details class="flow" style="margin:6px 0 10px"><summary>에이전트 흐름 ${r.순서.length}단계</summary>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>${answer(r.답)}</details>`}
+function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${r.순서.length}단계</summary>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>${answer(r.답)}</details>`}
 function pick(q){const t=document.getElementById('q');t.value=q;sync();t.focus()}
 function sync(){document.getElementById('go').disabled=busy||!document.getElementById('q').value.trim()}
 function btn(q,cls){return `<button type="button" class="ex ${cls||''}" data-q="${E(q)}">${E(q)}</button>`}
@@ -121,7 +121,7 @@ async function run(q){
   R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
   await new Promise(r=>setTimeout(r,220));
  }
- R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><details class="flow" style="margin:6px 0 10px"><summary>에이전트 흐름 ${steps.length}단계</summary><div class="mut" style="margin:6px 0">1. 모델이 질문을 읽고 도구 순서를 정함(${j.초??j.계획_초}초) → 2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap;font-size:11.5px">${E(JSON.stringify(j.실행||[],null,1))}</pre></details>${answer(j.답)}</div>`;
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><details class="flow" open style="margin:6px 0 10px"><summary>에이전트 흐름 ${steps.length}단계</summary><div class="mut" style="margin:6px 0">1. 모델이 질문을 읽고 도구 순서를 정함(${j.초??j.계획_초}초) → 2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<details style="margin-top:6px"><summary class="mut" style="font-weight:500">실행 기록(원문) 보기 ▾</summary><pre class="mut" style="white-space:pre-wrap;font-size:11.5px">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></details>${answer(j.답)}</div>`;
  if(j.다음_질문_예시&&j.다음_질문_예시.length){setButtons(j.다음_질문_예시);document.getElementById('exlabel').textContent='이어서 물어볼 예시:';document.getElementById('q').value='';sync();document.querySelector('.card.live').scrollIntoView({behavior:'smooth',block:'start'})}
  busy=false;sync();quota();
  R.scrollIntoView({behavior:'smooth',block:'start'});
