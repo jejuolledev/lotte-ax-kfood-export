@@ -195,7 +195,9 @@ def one_line(ans):
     if t:
         if not t["나라"]:
             return ans.get("주의") or "해당 조건에 맞는 나라가 없습니다."
-        s_ = f"유망국가 TOP3는 {' · '.join(t['나라'])}입니다({t['기준']})."
+        s_ = (f"유망국가 TOP3는 {' · '.join(t['나라'])}입니다({t['기준']})." if len(t['나라']) >= 3 else f"유망국가 종합 순위에 드는 나라는 {' · '.join(t['나라'])}입니다({t['기준']}).")
+        if ans.get("종합_셋미만_이유"):
+            s_ += " " + ans["종합_셋미만_이유"]
         k = ans.get("검산")
         if k and k.get("해당"):
             cnt = k.get("등장횟수") or {}
@@ -258,6 +260,19 @@ def answer_from_results(plan):
             k0 = next(iter(per3)); ans["유망국가_TOP3"] = {"기준": k0 + cond, "나라": [c["country"] for c in per3[k0]]}
         else:
             ans["유망국가_TOP3"] = {"기준": "종합(현지 공장 나라 제외, 품목 2개 이상)" + cond, "나라": [t["country"] for t in overall[:3]]}
+            if codes and len(overall) < 3:
+                # 지역 안에서 종합 조건(품목 2개 이상)을 넘는 나라가 셋 미만 → 이유와 품목별 다음 후보를 같이 낸다
+                M = R["나라별_지표"]
+                in_top = {t["country"] for t in overall}
+                cands = {}
+                for k, v in per.items():
+                    for i, r in enumerate(v):
+                        if r["country"] in in_top or r["country"] in PLANT:
+                            continue
+                        cands.setdefault(r["country"], []).append(f"{k.split('(')[0]} {i+1}위")
+                nxt = "; ".join(f"{c}({', '.join(x)})" for c, x in list(cands.items())[:3])
+                ans["종합_셋미만_이유"] = (f"{region}에서 품목 2개 이상이 비교 조건(한국 수출 100만 달러·그 나라 수입 2,000만 달러)을 넘는 나라는 {len(overall)}곳({'·'.join(in_top)})뿐이라 종합 TOP3가 {len(overall)}곳입니다. "
+                                      + (f"한 품목만 넘는 다음 후보는 품목별 순위로 봅니다: {nxt}." if nxt else "") + (" 벨기에는 롯데 현지 공장 나라라 뺐습니다." if region and "유럽" in region else ""))
         ans = {"유망국가_TOP3": ans.pop("유망국가_TOP3"), **ans}
     if "explain" in tools:
         want = set(focus) if focus else {c["country"] for v in ans.get("품목별_TOP3", {}).values() for c in v} or {c["country"] for v in R["품목별_TOP3_현지공장국가_제외"].values() for c in v}
