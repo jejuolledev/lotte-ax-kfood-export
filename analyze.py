@@ -105,11 +105,11 @@ for c in ("1905", "2105"):
     for r in json.load(open(RAW / f"hub_export_{c}_2025.json"))["data"]:
         HUB[(r["reporterCode"], c)] = r["primaryValue"]
 
-def build_rows(bases=(2021, 2022), kbase=2021):
+def build_rows(bases=(2021, 2022), kbase=2021, kmin=1e6, mmin=2e7):
   rows = []
   for c, d in DATA.items():
     for p, kx25 in d["kx"][2025].items():
-        if p in (0, 490) or kx25 < 1e6:
+        if p in (0, 490) or kx25 < kmin:
             continue
         base = next((y for y in bases if p in d["wm"][y]), None)
         last = next((y for y in (2025, 2024, 2023) if p in d["wm"][y]), None)
@@ -117,7 +117,7 @@ def build_rows(bases=(2021, 2022), kbase=2021):
         if base is None or last is None or not kxb or last - base < 2 or p not in KFOOD:
             continue
         m_last, m_base = d["wm"][last][p], d["wm"][base][p]
-        if m_last < 2e7:
+        if m_last < mmin:
             continue
         # 무게는 칸이 빈 해가 있어, 무게가 있는 해끼리(2021~2023 중 가장 이른 해 → 2025~2023 중 가장 늦은 해, 2년 이상) 계산
         wb = next((y for y in (2021, 2022, 2023) if (d["ww"][y].get(p) or 0) > 0), None)
@@ -195,6 +195,11 @@ for wn, W in WSETS.items():
     sens[wn] = [name(p) for p in r]
 _, ov22 = score(W0, build_rows(bases=(2022,), kbase=2022))
 sens["기준연도 2022(브렉시트 직후 2021 제외)"] = [name(p) for p in [p for p in sorted(ov22, key=lambda p: -ov22[p]) if p not in PLANT][:3]]
+ROWS_WIDE = build_rows(kmin=3e5, mmin=1e7)
+_, ovw = score(W0, ROWS_WIDE)
+WIDE_N = len(ovw)
+sens[f"범위 넓힘(한국 수출 30만 달러·수입 1,000만 달러 이상, {WIDE_N}개국)"] = [name(p) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:3]]
+WIDE_TOP10 = [(name(p), round(ovw[p], 1)) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:10]]
 count = {}
 for v in sens.values():
     for n in v:
@@ -274,6 +279,8 @@ for r in ROWS:
         continue
     kx22 = DATA[c]["kx"][2022].get(p); kx24 = DATA[c]["kx"][2024].get(p)
     rising.append({"country": name(p), "code": p, "cmd": CMDS[c], "kor_2021_usd": r["kor_base_usd"], "kor_2025_usd": r["kor_2025_usd"],
+                   "그나라_수입시장_USD": r["import_last_usd"], "점유율_1%p_가치_USD": r["import_last_usd"] * 0.01,
+                   "한국가공식품_연증가율": round(r["kfood"], 4) if r.get("kfood") is not None else None,
                    "kgrow_2021base": round(r["kgrow"], 4), "kgrow_2022base": round((r["kor_2025_usd"] / kx22) ** (1 / 3) - 1, 4) if kx22 else None,
                    "kor_2024to2025": round(r["kor_2025_usd"] / kx24 - 1, 4) if kx24 else None,
                    "import_growth": round(r["growth"], 4), "import_wgrowth": round(r["wgrowth"], 4) if r["wgrowth"] is not None else None,
@@ -326,6 +333,8 @@ result = {
     "민감도_TOP3": sens,
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
+    "범위_넓힘_상위10": WIDE_TOP10,
+    "범위_넓힘_나라수": WIDE_N,
     "올라오는_나라_규칙": RISING_RULE,
     "올라오는_나라": rising,
     "자료_빈_곳": gaps,
