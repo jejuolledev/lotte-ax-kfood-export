@@ -38,16 +38,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
   <button id="clear" class="ex" type="button">처음부터</button>
   <span class="mut" id="quota"></span>
  </div>
- <div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 85개 파일(4단위+빵 뺀 6단위)과 롯데웰푸드 IR(2025년 4분기·2026년 2분기)로 계산합니다. aT KATI 소비 트렌드 문장(영국·네덜란드·미국)은 아직 점수에 넣지 않았습니다. 모델은 도구 순서와 질문 해석만 정하고, 숫자·순위·검증은 코드가 냅니다. 비교 나라 수: 종합 순위(여러 품목 평균)는 「품목 2개 이상이 조건을 넘는」 16개국만 들어가고, 품목별 순위는 품목마다 조건 넘는 나라가 달라 비스킷은 26개국까지 들어갑니다.</div>
-</div>
-<div id="result"></div>
-<div id="next"></div>
-
-<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라·없는 나라)</span></h2>
-<div id="examples"></div>
-
-<h2>오류 확인 <span class="mut">(이상한 입력을 넣으면 어떻게 되는지 — 버튼은 실제 서버에 보냄)</span></h2>
-<div class="card">
+ <details class="flow" style="margin:10px 0 0"><summary>오류 확인 — 이상한 입력을 넣으면 어떻게 되나</summary><div style="margin-top:8px">
  <div class="mut">모델 호출 없이 서버가 바로 거르는 것들입니다. 눌러서 실제 응답을 보세요.</div>
  <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">
   <button type="button" class="ex" data-err="empty">빈 질문 보내기</button>
@@ -67,7 +58,16 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
   <tr><td>모델이 계획 JSON을 두 번 보냄</td><td>첫 것만 쓰고 회색 표시 「계획 JSON 2개 → 첫 것 사용」</td><td>정상 진행</td></tr>
   <tr><td>과제와 무관한 질문(「내 이름은?」)</td><td>도구를 돌리지 않고 범위 안내 + 예시 질문 3개</td><td>실행 예시 뒤쪽에 기록 있음</td></tr>
  </table>
+</div></details>
+<div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 85개 파일(4단위+빵 뺀 6단위)과 롯데웰푸드 IR(2025년 4분기·2026년 2분기)로 계산합니다. aT KATI 소비 트렌드 문장(영국·네덜란드·미국)은 아직 점수에 넣지 않았습니다. 모델은 도구 순서와 질문 해석만 정하고, 숫자·순위·검증은 코드가 냅니다. 비교 나라 수: 종합 순위(여러 품목 평균)는 「품목 2개 이상이 조건을 넘는」 16개국만 들어가고, 품목별 순위는 품목마다 조건 넘는 나라가 달라 비스킷은 26개국까지 들어갑니다.</div>
 </div>
+<div id="result"></div>
+<div id="next"></div>
+
+<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라·없는 나라)</span></h2>
+<div id="examples"></div>
+
+
 
 <h2>분석한 자료 <span class="mut">(무엇으로 계산했나)</span></h2>
 <div id="used"></div>
