@@ -65,7 +65,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <div id="result"></div>
 <div id="next"></div>
 
-<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라(정상 답)·없는 나라)</span></h2>
+<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라(정상 답)·실재하지 않는 나라(무관 처리))</span></h2>
 <div id="examples"></div>
 
 
@@ -147,6 +147,7 @@ async function run(q){
  clearTimeout(timer);
  if(!res.ok){if(res.status===401){document.getElementById('code').style.display='';document.getElementById('code').focus()}fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
  if(!j||!j.순서){fail(q,'서버가 계획을 돌려주지 않았습니다');return}
+ if(!j.답){fail(q,'모델이 짠 계획을 코드가 거부했습니다: '+(Array.isArray(j.검사)?j.검사.join(' / '):j.검사)+'. 질문을 조금 바꿔 다시 시도해 주세요(예: 지역은 하나씩, 품목은 이름으로).');return}
  // 과정을 순서대로 보여 준 뒤 답
  const steps=j.순서;
  for(let i=0;i<=steps.length;i++){
