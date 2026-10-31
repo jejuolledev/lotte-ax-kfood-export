@@ -308,8 +308,9 @@ for (p, c), x in sorted(HUB.items()):
     m = r["import_last_usd"] if r and r["import_last_year"] == 2025 else DATA[c]["wm"][2025].get(p)
     hub.append({"country": name(p), "cmd": c, "import_2025": m, "export_2025": x, "net_import_2025": (m - x) if m else None})
 
+_gap_countries = {name(p) for p in top3 + [x["code"] for x in rising]}
 for h in hub:
-    if h["net_import_2025"] is not None and h["import_2025"] and h["export_2025"] / h["import_2025"] > 0.5:
+    if h["country"] in _gap_countries and h["net_import_2025"] is not None and h["import_2025"] and h["export_2025"] / h["import_2025"] > 0.5:
         gaps.append({"country": h["country"], "cmd": CMDS[h["cmd"]], "빈 곳": "수출(재수출 포함)이 수입의 절반 넘음(수입이 소비인지 모름)", "다음 출처": NEXT_SOURCE["재수출_큰_나라"]})
 
 result = {
