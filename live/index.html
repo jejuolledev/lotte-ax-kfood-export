@@ -32,12 +32,12 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600}
  <div style="margin:8px 0"><span class="mut" id="exlabel" style="margin-right:6px">예시:</span><span id="exbtns"></span></div>
  <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
-  <input id="code" placeholder="비밀번호" style="width:160px;display:none">
+  <input id="code" placeholder="비밀번호" style="width:160px;display:none" value="">
   <button id="go">실행</button>
   <button id="clear" class="ex" type="button">처음부터</button>
   <span class="mut" id="quota"></span>
  </div>
- <div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 54개 파일, 롯데웰푸드 IR(2025년 4분기·2026년 2분기), aT KATI 보고서(영국·네덜란드·미국)로 분석합니다. 모델은 도구 순서와 설명 문장만 정하고, 숫자·순위·검증은 코드가 냅니다. 종합 순위는 품목 2개 이상인 16개국, 품목별 순위는 최대 26개국.</div>
+ <div class="mut" style="margin-top:8px;font-size:11.8px">에이전트는 UN Comtrade(유엔 무역통계) 2021~2025년 연간치 54개 파일, 롯데웰푸드 IR(2025년 4분기·2026년 2분기), aT KATI 보고서(영국·네덜란드·미국)로 분석합니다. 모델은 도구 순서와 설명 문장만 정하고, 숫자·순위·검증은 코드가 냅니다. 비교 나라 수: 종합 순위(여러 품목 평균)는 「품목 2개 이상이 조건을 넘는」 16개국만 들어가고, 품목별 순위는 품목마다 조건 넘는 나라가 달라 비스킷은 26개국까지 들어갑니다.</div>
 </div>
 <div id="result"></div>
 <div id="next"></div>
@@ -92,7 +92,7 @@ function answer(a){if(!a)return'';let h='';
  if(a.모르는_것)h+='<h3>모르는 것 — 자료 빈 곳과 다음 출처(역제안)</h3><table><tr><th>어디</th><th>빈 곳</th><th>다음 출처</th></tr>'+a.모르는_것.map(g=>`<tr><td>${E(g.country)} <span class="mut">${E(g.cmd.split('(')[0])}</span></td><td>${E(g['빈 곳'])}</td><td class="mut">${E(g['다음 출처'])}</td></tr>`).join('')+'</table>';
  return h}
 function meta(r){return `${r.모델?E(r.모델):''} · ${r.초??r.계획_초??'-'}초 · 토큰 ${r.토큰?(r.토큰.input+'/'+r.토큰.output):'-'} · 검사 ${E(r.검사)}${r.덧붙임?' <span class="chip red">JSON 뒤 덧붙임 → 첫 JSON만 사용</span>':''}`}
-function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary>${answer(r.답)}<h3>모델이 정한 순서 <span class="mut">(코드가 검사: score 없음·explain 뒤 verify 없음·모르는 품목코드면 거부)</span></h3>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>`}
+function block(r,open){return `<details ${open?'open':''} class="card"><summary>${E(r.질문)} <span class="mut">${meta(r)}</span></summary><details style="margin:6px 0 10px"><summary>에이전트 흐름 ${r.순서.length}단계 — 펼치면 모델이 정한 순서</summary>${stepsHtml(r.순서,r.순서.length)}${r.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(r.질문_이해)}</div>`:''}</details>${answer(r.답)}</details>`}
 function pick(q){const t=document.getElementById('q');t.value=q;sync();t.focus()}
 function sync(){document.getElementById('go').disabled=busy||!document.getElementById('q').value.trim()}
 function btn(q,cls){return `<button type="button" class="ex ${cls||''}" data-q="${E(q)}">${E(q)}</button>`}
@@ -102,7 +102,7 @@ async function run(q){
  q=document.getElementById('q').value.trim(); sync(); const code=document.getElementById('code').value.trim();
  const R=document.getElementById('result'), N=document.getElementById('next');
  if(!q){R.innerHTML='<div class="err">질문을 적어 주세요.</div>';return}
- if(!code){const ci=document.getElementById('code');ci.style.display='';R.innerHTML='<div class="err">비밀번호를 넣어 주세요(지원서·README에 있음). 주소 뒤에 ?code=비밀번호 를 붙여 열면 이 칸이 안 보입니다.</div>';ci.focus();sync();return}
+
  try{localStorage.setItem('code',code)}catch(e){}
  busy=true;sync();N.innerHTML='';
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. 모델이 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
@@ -120,7 +120,7 @@ async function run(q){
   R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><div class="mut">2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,i)}</div>`;
   await new Promise(r=>setTimeout(r,220));
  }
- R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div>${answer(j.답)}<details><summary>과정: 모델이 정한 순서와 실행 기록</summary>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap">${E(JSON.stringify(j.실행||[],null,1))}</pre></details></div>`;
+ R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin:6px 0">${meta(j)}</div><details style="margin:6px 0 10px"><summary>에이전트 흐름 ${steps.length}단계 — 펼치면 모델이 정한 순서와 실행 기록</summary><div class="mut" style="margin:6px 0">1. 모델이 질문을 읽고 도구 순서를 정함(${j.초??j.계획_초}초) → 2. 코드가 계획을 검사: ${E(j.검사)}${j.보충?' (빠진 단계 보충: '+E(j.보충.join(', '))+')':''} → 3. 순서대로 실행</div>${stepsHtml(steps,steps.length)}${j.질문_이해?`<div class="mut" style="margin-top:6px">모델이 이해한 질문: ${E(j.질문_이해)}</div>`:''}<pre class="mut" style="white-space:pre-wrap;font-size:11.5px">${E(JSON.stringify(j.실행||[],null,1))}</pre></details>${answer(j.답)}</div>`;
  if(j.다음_질문_예시&&j.다음_질문_예시.length){setButtons(j.다음_질문_예시);document.getElementById('exlabel').textContent='이어서 물어볼 예시:';document.getElementById('q').value='';sync();document.querySelector('.card.live').scrollIntoView({behavior:'smooth',block:'start'})}
  busy=false;sync();quota();
  R.scrollIntoView({behavior:'smooth',block:'start'});
@@ -146,7 +146,7 @@ async function load(){
 document.body.addEventListener('click',e=>{const b=e.target.closest('button[data-q],button[data-clear],button[data-load]');if(!b)return;if(b.dataset.clear){clearAll();return}if(b.dataset.load){load();return}if(b.dataset.run){run(b.dataset.q);return}pick(b.dataset.q)});
 document.getElementById('go').onclick=()=>run();
 document.getElementById('upfile').addEventListener('change',e=>{document.getElementById('upbtn').disabled=!e.target.files.length});
-document.getElementById('upbtn').onclick=async()=>{const f=document.getElementById('upfile').files[0];if(!f)return;const code=document.getElementById('code').value.trim();const U=document.getElementById('upres');if(!code){U.innerHTML='<div class="err">비밀번호가 필요합니다. 위 질문 칸에서 한 번 실행하거나 주소 뒤에 ?code= 를 붙여 주세요.</div>';return}
+document.getElementById('upbtn').onclick=async()=>{const f=document.getElementById('upfile').files[0];if(!f)return;const code=document.getElementById('code').value.trim();const U=document.getElementById('upres');
  const fd=new FormData();fd.append('file',f);fd.append('code',code);U.innerHTML='<div class="mut">읽는 중…</div>';
  try{const r=await fetch('upload',{method:'POST',body:fd});const j=await r.json();if(!r.ok){U.innerHTML=`<div class="err">${E(j.detail||r.status)}</div>`;return}
   U.innerHTML=`<div class="card"><b>${E(j.파일)}</b> · ${j.행}행(못 읽은 행 ${j['못 읽은 행']}) · 나라 ${E(j['아는 나라'].join(', ')||'-')}${j['모르는 나라(이름 확인 필요)'].length?` · <span class="chip red">이름 확인 필요: ${E(j['모르는 나라(이름 확인 필요)'].join(', '))}</span>`:''} · 품목 ${E(j.품목코드.join(', '))} · 연도 ${E(j.연도.join(', '))}<div style="margin-top:6px"><b>어디에 쓰이나</b><ul style="margin:4px 0 0 18px">${j['어디에 쓰이나'].map(x=>`<li>${E(x)}</li>`).join('')}</ul></div><div class="mut" style="margin-top:6px">${E(j['지금 상태'])}</div></div>`}

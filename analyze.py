@@ -105,9 +105,9 @@ for c in ("1905", "2105"):
     for r in json.load(open(RAW / f"hub_export_{c}_2025.json"))["data"]:
         HUB[(r["reporterCode"], c)] = r["primaryValue"]
 
-def build_rows(bases=(2021, 2022), kbase=2021, kmin=1e6, mmin=2e7):
+def build_rows(bases=(2021, 2022), kbase=2021, kmin=1e6, mmin=2e7, data=None):
   rows = []
-  for c, d in DATA.items():
+  for c, d in (data or DATA).items():
     for p, kx25 in d["kx"][2025].items():
         if p in (0, 490) or kx25 < kmin:
             continue
@@ -200,6 +200,23 @@ _, ovw = score(W0, ROWS_WIDE)
 WIDE_N = len(ovw)
 sens[f"범위 넓힘(한국 수출 30만 달러·수입 1,000만 달러 이상, {WIDE_N}개국)"] = [name(p) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:3]]
 WIDE_TOP10 = [(name(p), round(ovw[p], 1)) for p in [p for p in sorted(ovw, key=lambda p: -ovw[p]) if p not in PLANT][:10]]
+# 10번째 검산: 비스킷을 4단위(HS 1905, 빵·케이크 포함) 대신 6단위로. 한국의 1905 수출은 94%가 1905.90(기타: 빵·케이크·쌀과자·스낵 포함)이고
+# 1905.31(달콤한 비스킷)은 5%뿐이라, 한국 수출이 잡히는 190590으로 검산한다. 190531·190532 는 구성 확인용으로 함께 받아 둠.
+def _load6(c):
+    return {"kx": {y: load("kor_export", c, y) for y in range(2021, 2026)},
+            "wm": {y: load("world_import", c, y) for y in range(2021, 2026)},
+            "ww": {y: load("world_import", c, y, "netWgt") for y in range(2021, 2026)}}
+DATA6 = dict(DATA); DATA6["1905"] = _load6("190590")
+ROWS6 = build_rows(data=DATA6)
+by6, ov6 = score(W0, ROWS6)
+sens["비스킷을 6단위(HS 190590 — 한국 과자 수출의 94%가 신고되는 칸)로"] = [name(p) for p in [p for p in sorted(ov6, key=lambda p: -ov6[p]) if p not in PLANT][:3]]
+BISCUIT6_TOP5 = [(name(p), round(by6[p]["1905"][0], 1)) for p in sorted([p for p in by6 if "1905" in by6[p] and p not in PLANT], key=lambda p: -by6[p]["1905"][0])[:5]]
+BISCUIT6_N = len([p for p in by6 if "1905" in by6[p] and p not in PLANT])
+_k = {c: sum(v for k, v in load("kor_export", c, 2025).items() if k != 0) for c in ("1905", "190531", "190532", "190590")}
+KOR_1905_SPLIT = {"1905 전체": _k["1905"], "190531 달콤한 비스킷": _k["190531"], "190532 와플·웨이퍼": _k["190532"], "190590 기타(빵·케이크·쌀과자·스낵 포함)": _k["190590"],
+                  "190590 비중": round(_k["190590"] / _k["1905"], 3)}
+_uk = {c: (load("kor_export", c, 2025).get(826) or 0) for c in ("1905", "190531", "190532", "190590")}
+KOR_1905_SPLIT["영국행"] = _uk
 count = {}
 for v in sens.values():
     for n in v:
@@ -308,7 +325,7 @@ for p in top3 + [x["code"] for x in rising]:
 gaps.append({"country": "전체", "cmd": "빼빼로", "빈 곳": "실제 신고 품목코드 미확인(HS 1905로 가정)", "다음 출처": NEXT_SOURCE["제품_신고코드_미확인"]})
 _tw = {c: DATA[c]["kx"][2025].get(490) for c in CMDS}
 gaps.append({"country": "대만", "cmd": "전 품목", "빈 곳": "Comtrade에 대만(코드 490) 수입 통계가 없어 비교에서 빠짐 — 한국 비스킷 수출 " + f"{(_tw.get('1905') or 0)/1e6:.1f}백만 달러(상대국 4위)", "다음 출처": "대만 재정부 관무서(關務署) 수출입 통계"})
-gaps.append({"country": "전체", "cmd": "비스킷·과자류", "빈 곳": "HS 1905에는 빵·케이크도 들어 있어 과자만의 수입과 다를 수 있음", "다음 출처": "HS 6단위(1905.31 비스킷·1905.90 등)로 다시 받기"})
+gaps.append({"country": "전체", "cmd": "비스킷·과자류", "빈 곳": "HS 1905에는 빵·케이크도 들어 있음. 한국 과자 수출의 94%가 1905.90(기타)으로 신고돼 6단위로도 과자만 못 가름", "다음 출처": "롯데 제품별 신고 코드(10단위)와 그 나라 세관 통계"})
 gaps.append({"country": "전체", "cmd": "소비 트렌드", "빈 곳": "보고서 문장은 영국·네덜란드·미국 3개국만 확보", "다음 출처": NEXT_SOURCE["트렌드_보고서_없음"]})
 
 # 재수출 확인 표(비스킷·아이스크림): 수입 - 수출
@@ -348,6 +365,9 @@ result = {
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
     "범위_넓힘_상위10": WIDE_TOP10,
+    "비스킷_6단위_품목TOP5": BISCUIT6_TOP5,
+    "비스킷_6단위_나라수": BISCUIT6_N,
+    "한국_1905_6단위_구성_2025": KOR_1905_SPLIT,
     "범위_넓힘_나라수": WIDE_N,
     "올라오는_나라_규칙": RISING_RULE,
     "올라오는_나라": rising,

@@ -379,7 +379,7 @@ def status():
 def ask(a: Ask):
     q = (a.question or "").strip()
     if ACCESS_CODE and a.code != ACCESS_CODE:
-        raise HTTPException(401, "비밀번호가 다릅니다(지원서·README에 적어 둔 코드).")
+        raise HTTPException(401, "접근 코드가 다릅니다.")
     if not q or len(q) > 300:
         raise HTTPException(400, "질문은 1~300자.")
     today = (datetime.datetime.utcnow() + datetime.timedelta(hours=9)).date().isoformat()  # 한국 시간 기준
