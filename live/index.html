@@ -31,7 +31,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <div class="card live">
  <div class="mut">예시를 누르면 질문 칸에 들어갑니다. 「실행」을 누르면 에이전트가 돌아갑니다. 직접 적어도 됩니다.</div>
  <div style="margin:8px 0"><span class="mut" id="exlabel" style="margin-right:6px">예시:</span><span id="exbtns"></span></div>
- <div style="margin:4px 0 8px"><span class="mut" style="margin-right:6px">오류 예시:</span><span id="errbtns"></span><span class="mut" style="margin-left:6px;font-size:11.5px">— 무관한 질문·공장 나라·없는 나라·아주 긴 질문을 넣으면 어떻게 답하는지</span></div>
+ <div style="margin:4px 0 8px"><span class="mut" style="margin-right:6px">오류 예시:</span><span id="errbtns"></span><span class="mut" style="margin-left:6px;font-size:11.5px">— 과제와 무관한 질문이나 없는 나라를 넣으면 어떻게 답하는지</span></div>
  <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
   <input id="code" placeholder="비밀번호" style="width:160px;display:none" value="">
@@ -65,7 +65,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <div id="result"></div>
 <div id="next"></div>
 
-<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라·없는 나라)</span></h2>
+<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라(정상 답)·없는 나라)</span></h2>
 <div id="examples"></div>
 
 
@@ -94,8 +94,8 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <script>
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=x=>x==null?'-':Math.round(x*100)+'%';
-const FIRST=["K-푸드 수출 유망국가 TOP3는 어디인가"];
-const ERR_EX=["내 이름은?","카자흐스탄은 왜 추천에 없어?","아틀란티스에 빼빼로 팔 수 있어?","빼빼로를 화성에 수출하려면 어느 도시부터?"];
+const FIRST=["K-푸드 수출 유망국가 TOP3는 어디인가","카자흐스탄은 왜 추천에 없어?"];
+const ERR_EX=["내 이름은?","오늘 날씨 어때?","아틀란티스에 빼빼로 팔 수 있어?","빼빼로를 화성에 수출하려면 어느 도시부터?"];
 let curEx=FIRST.slice();
 let busy=false,curAC=null,cancelled=false;
 function stepsHtml(o,done){return '<div class="steps">'+o.map((s,i)=>`<span class="step ${i<done?'done':''}" title="${E(s.이유)}">${i<done?'✓ ':''}${i+1}. ${E(s.도구)}${Object.keys(s.인자||{}).length?' <span class="mut">'+E(JSON.stringify(s.인자))+'</span>':''}</span>`).join('<span class="arrow">→</span>')+'</div>'}
