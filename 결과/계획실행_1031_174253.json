@@ -1,0 +1,23 @@
+{
+ "질문": "아틀란티스에 빼빼로 팔 수 있어?",
+ "모델": "gpt-5.4-mini-2026-03-17",
+ "계획_초": 1.28,
+ "토큰": {
+  "input": 1914,
+  "output": 106
+ },
+ "계획": {
+  "question_understood": "아틀란티스에 빼빼로를 판매할 수 있는지, K-푸드 수출 관점에서 판단하려는 질문입니다.",
+  "intent": "off_topic",
+  "focus_countries": [
+   "아틀란티스"
+  ],
+  "exclude_regions": null,
+  "exclude_countries": null,
+  "limits": "실재 국가가 아닌 아틀란티스는 수입·수출 통계와 트렌드 자료로 판단할 수 없습니다.",
+  "steps": [],
+  "_모델_JSON_뒤_덧붙임": false
+ },
+ "검사": "통과",
+ "실행": []
+}

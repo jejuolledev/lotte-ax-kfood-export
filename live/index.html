@@ -43,8 +43,31 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <div id="result"></div>
 <div id="next"></div>
 
-<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 6건 — 한도가 끝나도 볼 수 있음)</span></h2>
+<h2>실행 예시 <span class="mut">(이미 돌려 둔 기록 — 한도가 끝나도 볼 수 있음. 뒤 3건은 경계 질문: 무관한 질문·공장 나라·없는 나라)</span></h2>
 <div id="examples"></div>
+
+<h2>오류 확인 <span class="mut">(이상한 입력을 넣으면 어떻게 되는지 — 버튼은 실제 서버에 보냄)</span></h2>
+<div class="card">
+ <div class="mut">모델 호출 없이 서버가 바로 거르는 것들입니다. 눌러서 실제 응답을 보세요.</div>
+ <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">
+  <button type="button" class="ex" data-err="empty">빈 질문 보내기</button>
+  <button type="button" class="ex" data-err="long">301자 질문 보내기</button>
+  <button type="button" class="ex" data-err="csv">열이 틀린 CSV 올리기</button>
+  <button type="button" class="ex" data-err="big">1MB 넘는 CSV 올리기</button>
+  <button type="button" class="ex" data-err="nan">금액이 글자인 CSV 올리기</button>
+ </div>
+ <div id="errres"></div>
+ <div style="margin-top:10px"><b>돈이 들거나 재현이 어려운 경우</b> — 이럴 때 화면에 이렇게 나옵니다(코드의 실제 문구):</div>
+ <table style="font-size:12.5px"><tr><th>상황</th><th>화면 문구</th><th>그다음</th></tr>
+  <tr><td>하루 50번·총 300번 한도 끝</td><td>「오늘 한도(50번) 또는 총 한도(300번)가 끝났습니다. 아래 실행 예시는 그대로 볼 수 있습니다.」</td><td>다시 시도·처음부터 버튼, 예시 기록은 계속 보임</td></tr>
+  <tr><td>모델 호출 실패(OpenAI 쪽 오류)</td><td>「모델 호출 실패(오류 종류). 잠시 뒤 다시 시도해 주세요.」</td><td>다시 시도 버튼</td></tr>
+  <tr><td>50초 안에 응답 없음</td><td>「50초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)」</td><td>다시 시도 버튼. 서버 쪽 모델 대기는 20초×2회</td></tr>
+  <tr><td>인터넷 끊김</td><td>「서버에 연결하지 못했습니다(…)」</td><td>다시 시도 버튼</td></tr>
+  <tr><td>모델이 계획을 잘못 짬(점수 도구 없음·설명 뒤 검증 없음·모르는 품목코드)</td><td>검사 결과에 거부 이유가 적히고 답은 비움. 빠진 수집 단계는 코드가 보충</td><td>흐름 칸에 「보충」 표시</td></tr>
+  <tr><td>모델이 계획 JSON을 두 번 보냄</td><td>첫 것만 쓰고 회색 표시 「계획 JSON 2개 → 첫 것 사용」</td><td>정상 진행</td></tr>
+  <tr><td>과제와 무관한 질문(「내 이름은?」)</td><td>도구를 돌리지 않고 범위 안내 + 예시 질문 3개</td><td>실행 예시 뒤쪽에 기록 있음</td></tr>
+ </table>
+</div>
 
 <h2>분석한 자료 <span class="mut">(무엇으로 계산했나)</span></h2>
 <div id="used"></div>
@@ -152,6 +175,12 @@ async function load(){
 }
 document.body.addEventListener('click',e=>{const b=e.target.closest('button[data-q],button[data-clear],button[data-load]');if(!b)return;if(b.dataset.clear){clearAll();return}if(b.dataset.load){load();return}if(b.dataset.run){run(b.dataset.q);return}pick(b.dataset.q)});
 document.getElementById('go').onclick=()=>run();
+document.body.addEventListener('click',async e=>{const b=e.target.closest('button[data-err]');if(!b)return;const R=document.getElementById('errres');R.innerHTML='<div class="mut">보내는 중…</div>';
+ try{let r,j;const k=b.dataset.err;
+  if(k==='empty'||k==='long'){const q=k==='empty'?'':'가'.repeat(301);r=await fetch('ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,code:''})});j=await r.json()}
+  else{const fd=new FormData();let blob;if(k==='csv')blob=new Blob(['국가,코드,금액\n영국,1905,1\n'],{type:'text/csv'});else if(k==='big')blob=new Blob([new Uint8Array(1_100_000)],{type:'text/csv'});else blob=new Blob(['나라,품목코드,연도,수출액_USD,수출무게_kg\n영국,1905,2025,abc,\n영국,1905,2024,nan,\n네덜란드,1905,2025,7003996,\n'],{type:'text/csv'});fd.append('file',blob,'test.csv');fd.append('code','');r=await fetch('upload',{method:'POST',body:fd});j=await r.json()}
+  R.innerHTML=`<div class="card"><span class="chip ${r.ok?'':'red'}">HTTP ${r.status}</span> <pre class="mut" style="white-space:pre-wrap;margin:6px 0 0">${E(JSON.stringify(j,null,1))}</pre></div>`}
+ catch(err){R.innerHTML=`<div class="err">보내지 못했습니다(${E(err.message||err)})</div>`}});
 document.getElementById('upfile').addEventListener('change',e=>{document.getElementById('upbtn').disabled=!e.target.files.length});
 document.getElementById('upbtn').onclick=async()=>{const f=document.getElementById('upfile').files[0];if(!f)return;const code=document.getElementById('code').value.trim();const U=document.getElementById('upres');
  const fd=new FormData();fd.append('file',f);fd.append('code',code);U.innerHTML='<div class="mut">읽는 중…</div>';

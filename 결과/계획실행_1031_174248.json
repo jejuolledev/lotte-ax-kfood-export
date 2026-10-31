@@ -1,0 +1,21 @@
+{
+ "질문": "내 이름은?",
+ "모델": "gpt-5.4-mini-2026-03-17",
+ "계획_초": 1.61,
+ "토큰": {
+  "input": 1903,
+  "output": 48
+ },
+ "계획": {
+  "question_understood": "사용자의 이름을 물음",
+  "intent": "off_topic",
+  "focus_countries": null,
+  "exclude_regions": null,
+  "exclude_countries": null,
+  "limits": null,
+  "steps": [],
+  "_모델_JSON_뒤_덧붙임": false
+ },
+ "검사": "통과",
+ "실행": []
+}
