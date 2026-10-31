@@ -36,6 +36,9 @@ PLAN_SCHEMA = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "question_understood": {"type": "string", "description": "질문을 한 줄로 다시 쓴 것"},
+        "intent": {"type": "string", "enum": ["top3", "why_country", "item_for_country", "rising", "gaps", "compare"],
+                   "description": "top3=유망국가 묻기 / why_country=특정 나라가 왜 높은지·낮은지 / item_for_country=특정 나라에 먼저 보낼 품목 / rising=작지만 올라오는 나라 / gaps=자료 빈 곳 / compare=나라끼리 비교"},
+        "focus_countries": {"type": ["array", "null"], "items": {"type": "string"}, "description": "질문이 가리키는 나라 이름(한국어). 없으면 null"},
         "steps": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {"tool": {"type": "string", "enum": list(TOOLS)},
@@ -50,11 +53,11 @@ PLAN_SCHEMA = {
                            "why": {"type": "string"}},
             "required": ["tool", "args", "why"]}},
     },
-    "required": ["question_understood", "steps"],
+    "required": ["question_understood", "intent", "focus_countries", "steps"],
 }
 
 SYSTEM = ("너는 K-푸드 수출 유망국가 에이전트의 계획 단계다. 담당자의 질문을 읽고, 아래 도구를 어떤 순서로 어떤 인자로 부를지 JSON 으로만 답한다. "
-          "규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). explain 뒤에는 반드시 verify 가 온다. "
+          "먼저 intent(질문 종류)와 focus_countries(질문이 가리키는 나라)를 정한다. 규칙: 점수·순위는 score 도구만 낸다(네가 순위를 정하지 않는다). 특정 나라를 묻는 질문(why_country·item_for_country)은 score → explain → verify → gaps 를 포함한다. explain 뒤에는 반드시 verify 가 온다. "
           "질문에 제품 이름이 있으면 품목코드로 바꾼다(빼빼로·칸쵸=1905, 가나=1806, 캔디=1704, 월드콘=2105). 품목을 안 정한 질문(K-푸드 전체·유망국가 전체)이면 hs 를 비워 둔다(= 전체 품목). "
           "질문에 지역이 있으면 fetch_import 의 region 에 넣는다(동남아·동북아·중앙아시아·인도 등은 아시아, 남미·라틴아메리카·멕시코는 중남미, EU·서유럽·동유럽·영국은 유럽, 미국·캐나다는 북미, 걸프·중동은 중동, 호주·뉴질랜드는 오세아니아 — 이 여섯 이름이나 전체만 쓴다).  자료가 없는 나라가 있을 수 있으니 마지막엔 gaps 를 부른다.\n도구 목록:\n"
           + "\n".join(f"- {k}: {v['desc']} / 인자 {json.dumps(v['args'], ensure_ascii=False)}" for k, v in TOOLS.items()))
@@ -155,7 +158,7 @@ def hand_plan(question):
     hs = next((v for k, v in PRODUCT_HS.items() if k in question), "1905")
     region = next((r for r in REGION if r in question), "전체")
     A = lambda **kw: {"hs": None, "region": None, "countries": None, "weights": None, "top_n": None, **kw}
-    return {"question_understood": f"HS {hs}, {region} — 다음 나라", "steps": [
+    return {"question_understood": f"HS {hs}, {region} — 다음 나라", "intent": "top3", "focus_countries": None, "steps": [
         {"tool": "fetch_import", "args": A(hs=hs, region=region), "why": "손 계획"},
         {"tool": "fetch_kor_export", "args": A(hs=hs), "why": "손 계획"},
         {"tool": "score", "args": A(), "why": "손 계획"},

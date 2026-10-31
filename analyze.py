@@ -332,6 +332,15 @@ result = {
     "품목별_TOP3_현지공장국가_제외": {CMDS[c]: v for c, v in per_cmd.items()},
     "품목별_전체순위_현지공장국가_제외": {CMDS[c]: [{"country": name(p), "code": p, "score": round(by[p][c][0], 1)} for p in sorted([p for p in by if c in by[p] and p not in PLANT], key=lambda p: -by[p][c][0])] for c in CMDS},
     "종합_전체순위_현지공장국가_제외": [{"country": name(p), "code": p, "score": round(overall[p], 1), "tag": tag_of(p)} for p in cand],
+    "나라별_지표": {name(p): {"code": p, "tag": tag_of(p), "종합점수": round(overall[p], 1) if p in overall else None,
+                           "종합순위": ([q for q in cand].index(p) + 1) if p in cand else None,
+                           "품목": {CMDS[c]: {"품목순위": [q for q in sorted([q for q in by if c in by[q] and q not in PLANT], key=lambda q: -by[q][c][0])].index(p) + 1 if p not in PLANT else None,
+                                           "품목점수": round(by[p][c][0], 1), "지표백분위": {k: round(v) for k, v in by[p][c][1].items()},
+                                           "수입_최근USD": r["import_last_usd"], "수입_연증가": round(r["growth"], 4), "수입무게_연증가": round(r["wgrowth"], 4) if r["wgrowth"] is not None else None,
+                                           "한국수출_2021USD": r["kor_base_usd"], "한국수출_2025USD": r["kor_2025_usd"], "한국수출_연증가": round(r["kgrow"], 4), "한국점유율": round(r["kor_share"], 5),
+                                           "한국가공식품_연증가": round(r["kfood"], 4) if r.get("kfood") is not None else None, "수입_최근연도": r["import_last_year"]}
+                                 for c in by[p] for r in [next(x for x in ROWS if x["code"] == p and x["cmd"] == c)]}}
+                  for p in by},
     "민감도_TOP3": sens,
     "민감도_TOP3_등장횟수": dict(sorted(count.items(), key=lambda x: -x[1])),
     "민감도_세트수": len(sens),
