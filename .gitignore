@@ -1,0 +1,10 @@
+.env
+.env.*
+__pycache__/
+*.pyc
+.omc/
+.DS_Store
+근거원문/
+포트폴리오/
+지원서_칸*.py
+_백업*
