@@ -31,6 +31,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 <div class="card live">
  <div class="mut">예시를 누르면 질문 칸에 들어갑니다. 「실행」을 누르면 에이전트가 돌아갑니다. 직접 적어도 됩니다.</div>
  <div style="margin:8px 0"><span class="mut" id="exlabel" style="margin-right:6px">예시:</span><span id="exbtns"></span></div>
+ <div style="margin:4px 0 8px"><span class="mut" style="margin-right:6px">오류 예시:</span><span id="errbtns"></span><span class="mut" style="margin-left:6px;font-size:11.5px">— 무관한 질문·공장 나라·없는 나라·아주 긴 질문을 넣으면 어떻게 답하는지</span></div>
  <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
   <input id="code" placeholder="비밀번호" style="width:160px;display:none" value="">
@@ -94,6 +95,8 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600;list-style:none;outl
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=x=>x==null?'-':Math.round(x*100)+'%';
 const FIRST=["K-푸드 수출 유망국가 TOP3는 어디인가"];
+const ERR_EX=["내 이름은?","카자흐스탄은 왜 추천에 없어?","아틀란티스에 빼빼로 팔 수 있어?","빼빼로를 화성에 수출하려면 어느 도시부터?"];
+let curEx=FIRST.slice();
 let busy=false,curAC=null,cancelled=false;
 function stepsHtml(o,done){return '<div class="steps">'+o.map((s,i)=>`<span class="step ${i<done?'done':''}" title="${E(s.이유)}">${i<done?'✓ ':''}${i+1}. ${E(s.도구)}${Object.keys(s.인자||{}).length?' <span class="mut">'+E(JSON.stringify(s.인자))+'</span>':''}</span>`).join('<span class="arrow">→</span>')+'</div>'}
 const MN={size:'시장 규모',growth:'수입 성장',kgrow:'한국 수출 성장',kfood:'K-푸드 전반'};
@@ -126,7 +129,7 @@ function block(r,open){return `<details ${open?'open':''} class="card"><summary>
 function pick(q){const t=document.getElementById('q');t.value=q;sync();t.focus()}
 function sync(){document.getElementById('go').disabled=busy||!document.getElementById('q').value.trim()}
 function btn(q,cls){return `<button type="button" class="ex ${cls||''}" data-q="${E(q)}">${E(q)}</button>`}
-function setButtons(list){document.getElementById('exbtns').innerHTML=list.map(q=>btn(q)).join('')}
+function setButtons(list){curEx=list.filter(q=>!ERR_EX.includes(q));document.getElementById('exbtns').innerHTML=curEx.map(q=>btn(q)).join('');document.getElementById('errbtns').innerHTML=ERR_EX.filter(q=>!curEx.includes(q)).map(q=>btn(q)).join('')}
 async function run(q){
  if(busy)return; if(q){document.getElementById('q').value=q}
  q=document.getElementById('q').value.trim(); sync(); const code=document.getElementById('code').value.trim();
