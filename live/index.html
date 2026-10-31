@@ -31,7 +31,7 @@ details{margin:6px 0}summary{cursor:pointer;font-weight:600}
  <div id="exbtns" style="margin:8px 0"></div>
  <textarea id="q" placeholder="예: K-푸드 수출 유망국가 TOP3는 어디인가"></textarea>
  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
-  <input id="code" placeholder="비밀번호" style="width:160px">
+  <input id="code" placeholder="비밀번호" style="width:160px;display:none">
   <button id="go">실행</button>
   <button id="clear" class="ex" type="button">처음부터</button>
   <span class="mut" id="quota"></span>
@@ -86,7 +86,7 @@ async function run(q){
  q=document.getElementById('q').value.trim(); sync(); const code=document.getElementById('code').value.trim();
  const R=document.getElementById('result'), N=document.getElementById('next');
  if(!q){R.innerHTML='<div class="err">질문을 적어 주세요.</div>';return}
- if(!code){R.innerHTML='<div class="err">비밀번호를 넣어 주세요(지원서·README에 있음).</div>';document.getElementById('code').focus();return}
+ if(!code){const ci=document.getElementById('code');ci.style.display='';R.innerHTML='<div class="err">비밀번호를 넣어 주세요(지원서·README에 있음). 주소 뒤에 ?code=비밀번호 를 붙여 열면 이 칸이 안 보입니다.</div>';ci.focus();sync();return}
  try{localStorage.setItem('code',code)}catch(e){}
  busy=true;sync();N.innerHTML='';
  R.innerHTML=`<div class="card live"><b>${E(q)}</b><div class="mut" style="margin-top:6px">1. 모델이 질문을 읽고 도구 순서를 정하는 중… (2~6초)</div></div>`;
@@ -96,7 +96,7 @@ async function run(q){
   try{j=await res.json()}catch(e){j={detail:'서버 응답을 읽지 못했습니다(상태 '+res.status+')'}}}
  catch(e){clearTimeout(timer);const why=e.name==='AbortError'?'45초 안에 응답이 없었습니다(모델 지연 또는 통신 문제)':'서버에 연결하지 못했습니다('+E(e.message||e)+')';fail(q,why);return}
  clearTimeout(timer);
- if(!res.ok){fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
+ if(!res.ok){if(res.status===401){document.getElementById('code').style.display='';document.getElementById('code').focus()}fail(q,(j&&j.detail)||('서버 오류 '+res.status));return}
  if(!j||!j.순서){fail(q,'서버가 계획을 돌려주지 않았습니다');return}
  // 과정을 순서대로 보여 준 뒤 답
  const steps=j.순서;
